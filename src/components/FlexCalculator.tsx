@@ -100,7 +100,7 @@ export const FlexCalculator: React.FC = () => {
           </div>
 
           <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', marginTop: '8px' }}>
-            O Etanol custa <strong>{result.ratioPercent.toFixed(1)}%</strong> do preço da Gasolina.
+            O Etanol custa <strong>{(result.ratioPercent ?? 0).toFixed(1)}%</strong> do preço da Gasolina.
           </div>
 
           <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
