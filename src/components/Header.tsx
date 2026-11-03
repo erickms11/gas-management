@@ -7,6 +7,7 @@ interface HeaderProps {
   activeVehicleId: string;
   onSelectVehicle: (id: string) => void;
   onOpenAddModal: () => void;
+  onOpenExportModal?: () => void;
   onOpenVehicleModal: (vehicleToEdit?: Vehicle | null) => void;
 }
 
