@@ -270,3 +270,4 @@ export const CarComparison: React.FC<CarComparisonProps> = ({ userStats, current
     </div>
   );
 };
+

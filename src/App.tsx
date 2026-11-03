@@ -9,6 +9,7 @@ import { RefuelFormModal } from './components/RefuelFormModal';
 import { DataExportModal } from './components/DataExportModal';
 import { CarComparison } from './components/CarComparison';
 import { SettingsView } from './components/SettingsView';
+import { VehicleModal } from './components/VehicleModal';
 import {
   loadVehicles,
   saveVehicles,
@@ -33,6 +34,8 @@ export function App() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingRefueling, setEditingRefueling] = useState<Refueling | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
+  const [vehicleToEdit, setVehicleToEdit] = useState<Vehicle | null>(null);
 
   useEffect(() => {
     reloadAllData();
@@ -129,6 +132,43 @@ export function App() {
     saveMaintenance(updated);
   };
 
+  const handleSaveVehicle = (vehicleData: Vehicle) => {
+    let updated: Vehicle[];
+    const exists = vehicles.some((v) => v.id === vehicleData.id);
+
+    if (exists) {
+      updated = vehicles.map((v) => (v.id === vehicleData.id ? vehicleData : v));
+    } else {
+      updated = [...vehicles, vehicleData];
+      setActiveVehicleId(vehicleData.id);
+      saveActiveVehicleId(vehicleData.id);
+    }
+
+    setVehicles(updated);
+    saveVehicles(updated);
+    setIsVehicleModalOpen(false);
+    setVehicleToEdit(null);
+  };
+
+  const handleDeleteVehicle = (id: string) => {
+    if (vehicles.length <= 1) {
+      alert('Você precisa ter pelo menos um veículo cadastrado.');
+      return;
+    }
+    const updated = vehicles.filter((v) => v.id !== id);
+    setVehicles(updated);
+    saveVehicles(updated);
+    if (activeVehicleId === id) {
+      setActiveVehicleId(updated[0].id);
+      saveActiveVehicleId(updated[0].id);
+    }
+  };
+
+  const handleOpenVehicleModal = (vehicle?: Vehicle | null) => {
+    setVehicleToEdit(vehicle || null);
+    setIsVehicleModalOpen(true);
+  };
+
   const handleOpenNewModal = () => {
     setEditingRefueling(null);
     setIsAddModalOpen(true);
@@ -148,6 +188,7 @@ export function App() {
         onSelectVehicle={handleSelectVehicle}
         onOpenAddModal={handleOpenNewModal}
         onOpenExportModal={() => setIsExportModalOpen(true)}
+        onOpenVehicleModal={handleOpenVehicleModal}
       />
 
       {/* Visão Dashboard */}
@@ -217,6 +258,19 @@ export function App() {
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         onDataImported={reloadAllData}
+      />
+
+      {/* Modal Veículo (Novo / Editar / Excluir) */}
+      <VehicleModal
+        isOpen={isVehicleModalOpen}
+        onClose={() => {
+          setIsVehicleModalOpen(false);
+          setVehicleToEdit(null);
+        }}
+        onSave={handleSaveVehicle}
+        onDelete={handleDeleteVehicle}
+        vehicleToEdit={vehicleToEdit}
+        canDelete={vehicles.length > 1}
       />
 
       {/* Menu Inferior (Mobile Bottom Nav) */}

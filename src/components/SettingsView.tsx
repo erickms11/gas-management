@@ -278,3 +278,4 @@ export const SettingsView: React.FC<SettingsModalProps> = ({ onDataChanged }) =>
     </div>
   );
 };
+

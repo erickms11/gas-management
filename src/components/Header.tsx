@@ -1,5 +1,5 @@
 import React from 'react';
-import { Fuel, Plus, FileJson } from 'lucide-react';
+import { Fuel, Plus, FileJson, Settings, Edit2, CarPlus } from 'lucide-react';
 import { Vehicle } from '../types/fuel';
 
 interface HeaderProps {
@@ -8,7 +8,7 @@ interface HeaderProps {
   onSelectVehicle: (id: string) => void;
   onOpenAddModal: () => void;
   onOpenExportModal: () => void;
-  onOpenSettings?: () => void;
+  onOpenVehicleModal: (vehicleToEdit?: Vehicle | null) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -17,6 +17,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectVehicle,
   onOpenAddModal,
   onOpenExportModal,
+  onOpenVehicleModal,
 }) => {
   const activeVehicle = vehicles.find((v) => v.id === activeVehicleId) || vehicles[0];
 
@@ -28,13 +29,32 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
         <div>
           <h1 className="brand-title">GasControl</h1>
-          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-            {activeVehicle ? `${activeVehicle.brand} ${activeVehicle.model}` : 'Gestão Veicular'}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+              {activeVehicle ? `${activeVehicle.brand} ${activeVehicle.model}` : 'Gestão Veicular'}
+            </span>
+            {activeVehicle && (
+              <button
+                onClick={() => onOpenVehicleModal(activeVehicle)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  color: 'var(--primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+                title="Editar este carro"
+              >
+                <Edit2 size={11} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         <select
           className="vehicle-selector"
           value={activeVehicleId}
@@ -47,25 +67,27 @@ export const Header: React.FC<HeaderProps> = ({
           ))}
         </select>
 
+        {/* Botão para cadastrar novo carro */}
         <button
-          onClick={onOpenExportModal}
+          onClick={() => onOpenVehicleModal(null)}
           style={{
-            background: 'rgba(255, 255, 255, 0.08)',
-            border: '1px solid var(--border-color)',
+            background: 'rgba(56, 189, 248, 0.12)',
+            border: '1px solid rgba(56, 189, 248, 0.3)',
             borderRadius: '12px',
             width: '36px',
             height: '36px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--text-main)',
+            color: 'var(--primary)',
             cursor: 'pointer',
           }}
-          title="Exportar Dados (JSON)"
+          title="Cadastrar Novo Carro"
         >
-          <FileJson size={18} />
+          <CarPlus size={18} />
         </button>
 
+        {/* Botão de novo abastecimento */}
         <button
           onClick={onOpenAddModal}
           style={{

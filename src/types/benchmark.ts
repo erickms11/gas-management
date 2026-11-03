@@ -188,3 +188,4 @@ export const BRAZILIAN_BENCHMARK_CARS: BenchmarkCar[] = [
     notes: 'SUV médio mais vendido, motor potente de 185 cv mas consumo mais elevado.',
   }
 ];
+
