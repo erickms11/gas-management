@@ -252,3 +252,17 @@ export function importDataFromJson(jsonContent: string): { success: boolean; mes
     return { success: false, message: 'Erro ao ler arquivo JSON: ' + (err?.message || 'Formato corrompido') };
   }
 }
+
+export function resetToSampleData(): void {
+  localStorage.setItem(STORAGE_KEYS.VEHICLES, JSON.stringify(DEFAULT_VEHICLES));
+  localStorage.setItem(STORAGE_KEYS.REFUELINGS, JSON.stringify(DEFAULT_REFUELINGS));
+  localStorage.setItem(STORAGE_KEYS.MAINTENANCE, JSON.stringify(DEFAULT_MAINTENANCE));
+  localStorage.setItem(STORAGE_KEYS.ACTIVE_VEHICLE, 'v1');
+}
+
+export function clearAllData(): void {
+  localStorage.removeItem(STORAGE_KEYS.VEHICLES);
+  localStorage.removeItem(STORAGE_KEYS.REFUELINGS);
+  localStorage.removeItem(STORAGE_KEYS.MAINTENANCE);
+  localStorage.removeItem(STORAGE_KEYS.ACTIVE_VEHICLE);
+}

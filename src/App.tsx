@@ -7,6 +7,8 @@ import { MaintenanceReminders } from './components/MaintenanceReminders';
 import { ChartsView } from './components/ChartsView';
 import { RefuelFormModal } from './components/RefuelFormModal';
 import { DataExportModal } from './components/DataExportModal';
+import { CarComparison } from './components/CarComparison';
+import { SettingsView } from './components/SettingsView';
 import {
   loadVehicles,
   saveVehicles,
@@ -19,7 +21,7 @@ import {
 } from './utils/storage';
 import { processRefuelings, calculateStats } from './utils/calculations';
 import { Vehicle, Refueling, MaintenanceItem } from './types/fuel';
-import { LayoutDashboard, History, Flame, Wrench, Plus } from 'lucide-react';
+import { LayoutDashboard, History, Flame, Wrench, Plus, Scale, Settings } from 'lucide-react';
 
 export function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -27,7 +29,7 @@ export function App() {
   const [maintenance, setMaintenance] = useState<MaintenanceItem[]>([]);
   const [activeVehicleId, setActiveVehicleId] = useState<string>('v1');
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'historico' | 'flex' | 'manutencao'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'historico' | 'flex' | 'comparativo' | 'manutencao' | 'configuracoes'>('dashboard');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingRefueling, setEditingRefueling] = useState<Refueling | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -177,6 +179,14 @@ export function App() {
       {/* Visão Calculadora Flex */}
       {activeTab === 'flex' && <FlexCalculator />}
 
+      {/* Visão Comparativo de Carros */}
+      {activeTab === 'comparativo' && (
+        <CarComparison
+          userStats={stats}
+          currentVehicleName={activeVehicle?.name}
+        />
+      )}
+
       {/* Visão Manutenções */}
       {activeTab === 'manutencao' && (
         <MaintenanceReminders
@@ -185,6 +195,11 @@ export function App() {
           onToggleComplete={handleToggleMaintenance}
           onAdd={handleAddMaintenance}
         />
+      )}
+
+      {/* Visão Configurações & Backup */}
+      {activeTab === 'configuracoes' && (
+        <SettingsView onDataChanged={reloadAllData} />
       )}
 
       {/* Modal Abastecimento (Novo / Editar) */}
@@ -227,19 +242,19 @@ export function App() {
         </button>
 
         <button
-          className={`nav-item ${activeTab === 'flex' ? 'active' : ''}`}
-          onClick={() => setActiveTab('flex')}
+          className={`nav-item ${activeTab === 'comparativo' ? 'active' : ''}`}
+          onClick={() => setActiveTab('comparativo')}
         >
-          <Flame size={20} />
-          <span>Flex</span>
+          <Scale size={20} />
+          <span>Comparar</span>
         </button>
 
         <button
-          className={`nav-item ${activeTab === 'manutencao' ? 'active' : ''}`}
-          onClick={() => setActiveTab('manutencao')}
+          className={`nav-item ${activeTab === 'configuracoes' ? 'active' : ''}`}
+          onClick={() => setActiveTab('configuracoes')}
         >
-          <Wrench size={20} />
-          <span>Revisão</span>
+          <Settings size={20} />
+          <span>Ajustes</span>
         </button>
       </nav>
     </div>

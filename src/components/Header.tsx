@@ -8,6 +8,7 @@ interface HeaderProps {
   onSelectVehicle: (id: string) => void;
   onOpenAddModal: () => void;
   onOpenExportModal: () => void;
+  onOpenSettings?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
