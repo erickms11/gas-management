@@ -1,5 +1,5 @@
 import React from 'react';
-import { Fuel, Plus, FileJson, Settings, Edit2, CarPlus } from 'lucide-react';
+import { Fuel, Plus, Edit2, Car } from 'lucide-react';
 import { Vehicle } from '../types/fuel';
 
 interface HeaderProps {
@@ -84,7 +84,7 @@ export const Header: React.FC<HeaderProps> = ({
           }}
           title="Cadastrar Novo Carro"
         >
-          <CarPlus size={18} />
+          <Car size={18} />
         </button>
 
         {/* Botão de novo abastecimento */}
