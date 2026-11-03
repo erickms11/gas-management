@@ -217,3 +217,4 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({
     </div>
   );
 };
+
