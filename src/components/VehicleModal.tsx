@@ -63,6 +63,11 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({
     const initOdo = parseInt(initialOdometer, 10) || 0;
     const currOdo = parseInt(currentOdometer, 10) || initOdo;
 
+    if (currOdo < initOdo) {
+      alert(`Atenção: O Odômetro Atual (${currOdo.toLocaleString('pt-BR')} Km) não pode ser menor que o Odômetro Inicial (${initOdo.toLocaleString('pt-BR')} Km). Verifique os números digitados.`);
+      return;
+    }
+
     const vehicleData: Vehicle = {
       id: vehicleToEdit ? vehicleToEdit.id : 'v_' + Date.now(),
       name: name.trim(),

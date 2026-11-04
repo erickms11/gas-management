@@ -267,7 +267,11 @@ export function App() {
       {/* Visão Dashboard */}
       {activeTab === 'dashboard' && (
         <>
-          <StatsOverview stats={stats} />
+          <StatsOverview
+            stats={stats}
+            initialOdometer={activeVehicle?.initialOdometer}
+            currentOdometer={activeVehicle?.currentOdometer || stats.lastOdometer}
+          />
           <FlexCalculator />
           <ChartsView refuelings={processedRefuelings} />
           <RefuelList

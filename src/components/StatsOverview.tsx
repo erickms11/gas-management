@@ -4,9 +4,20 @@ import { ConsumptionStats } from '../types/fuel';
 
 interface StatsOverviewProps {
   stats: ConsumptionStats;
+  initialOdometer?: number;
+  currentOdometer?: number;
 }
 
-export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
+export const StatsOverview: React.FC<StatsOverviewProps> = ({
+  stats,
+  initialOdometer,
+  currentOdometer,
+}) => {
+  const current = currentOdometer || stats.lastOdometer;
+  const initial = initialOdometer !== undefined && initialOdometer > 0
+    ? initialOdometer
+    : (stats.lastOdometer > stats.totalKmDriven ? stats.lastOdometer - stats.totalKmDriven : 0);
+
   return (
     <div className="stats-grid">
       <div className="glass-card stat-card">
@@ -52,15 +63,17 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
 
       <div className="glass-card stat-card">
         <div className="stat-header">
-          <span>Distância Total</span>
+          <span>Km Percorridos</span>
           <Navigation size={18} color="var(--accent-purple)" />
         </div>
         <div className="stat-value">
-          {stats.totalKmDriven > 0 ? stats.totalKmDriven.toLocaleString('pt-BR') : 0}
+          +{stats.totalKmDriven.toLocaleString('pt-BR')}
           <span className="stat-unit">Km</span>
         </div>
         <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
-          Odômetro atual: {stats.lastOdometer.toLocaleString('pt-BR')} Km
+          {initial > 0 && current > 0
+            ? `${initial.toLocaleString('pt-BR')} ➔ ${current.toLocaleString('pt-BR')} Km`
+            : `Odômetro: ${current.toLocaleString('pt-BR')} Km`}
         </span>
       </div>
     </div>
