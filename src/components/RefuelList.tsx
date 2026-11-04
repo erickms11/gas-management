@@ -141,7 +141,7 @@ export const RefuelList: React.FC<RefuelListProps> = ({ refuelings, onEdit }) =>
                     minWidth: 0,
                   }}
                 >
-                  ⚡ Rodou {item.kmDriven.toLocaleString('pt-BR')} Km neste tanque
+                  ⚡ Rodou {item.kmDriven.toLocaleString('pt-BR')} Km com {item.consumedLiters ? `${item.consumedLiters.toFixed(2)} L` : `${item.liters.toFixed(2)} L`}
                 </div>
               ) : null}
             </div>

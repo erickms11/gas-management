@@ -34,6 +34,7 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ refuelings }) => {
       isFullTank: r.isFullTank,
       kmDriven: r.kmDriven || 0,
       liters: r.liters,
+      consumedLiters: r.consumedLiters || r.liters,
     }));
 
   if (chartData.length === 0) return null;
@@ -119,9 +120,10 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ refuelings }) => {
                         if (name === 'mediaKml' || name === 'Média Acumulada') {
                           return [`${Number(value).toFixed(2)} Km/L`, 'Média Acumulada (Km/L)'];
                         }
+                        const litrosTrecho = item.payload.consumedLiters ? Number(item.payload.consumedLiters).toFixed(2) : Number(item.payload.liters).toFixed(2);
                         return [
                           `${Number(value).toFixed(2)} Km/L ${item.payload.isFullTank ? '(Tanque Cheio)' : '(Parcial)'}`,
-                          `Consumo do Trecho (+${item.payload.kmDriven} Km / ${item.payload.liters} L)`,
+                          `Consumo do Trecho (+${item.payload.kmDriven} Km com ${litrosTrecho} L)`,
                         ];
                       }}
                     />

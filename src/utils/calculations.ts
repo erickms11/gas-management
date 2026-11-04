@@ -15,6 +15,7 @@ export function processRefuelings(refuelings: Refueling[]): Refueling[] {
       return {
         ...item,
         kmDriven: undefined,
+        consumedLiters: undefined,
         consumptionKmL: undefined,
         costPerKm: undefined,
         runningAverageKmL: undefined,
@@ -24,17 +25,27 @@ export function processRefuelings(refuelings: Refueling[]): Refueling[] {
     const prev = sorted[index - 1];
     const kmDriven = item.odometer - prev.odometer;
 
-    // Litros acumulados a partir do segundo abastecimento (já que o 1º abastecimento estabeleceu a base de odômetro)
-    cumulativeLiters += item.liters;
+    // Regra de consumo de combustível:
+    // Se ambos os abastecimentos foram com tanque cheio, os litros repostos em 'item.liters'
+    // correspondem ao que foi gasto no trecho.
+    // CASO CONTRÁRIO (abastecimento parcial / método reserva a reserva):
+    // O combustível que o motor realmente queimou para andar esses 'kmDriven' Km foi o combustível
+    // colocado no início daquele trecho ('prev.liters').
+    const isBothFullTank = Boolean(prev.isFullTank && item.isFullTank);
+    const consumedLiters = isBothFullTank ? item.liters : prev.liters;
+
+    // Litros acumulados consumidos até este ponto para a média acumulada
+    cumulativeLiters += consumedLiters;
     const totalKmDrivenSoFar = item.odometer - firstOdometer;
 
     let consumptionKmL: number | undefined = undefined;
     let costPerKm: number | undefined = undefined;
     let runningAverageKmL: number | undefined = undefined;
 
-    if (kmDriven > 0 && item.liters > 0) {
-      consumptionKmL = kmDriven / item.liters;
-      costPerKm = item.totalCost / kmDriven;
+    if (kmDriven > 0 && consumedLiters > 0) {
+      consumptionKmL = kmDriven / consumedLiters;
+      const trechoCost = isBothFullTank ? item.totalCost : prev.totalCost;
+      costPerKm = trechoCost / kmDriven;
     }
 
     if (totalKmDrivenSoFar > 0 && cumulativeLiters > 0) {
@@ -44,6 +55,7 @@ export function processRefuelings(refuelings: Refueling[]): Refueling[] {
     return {
       ...item,
       kmDriven,
+      consumedLiters,
       consumptionKmL,
       costPerKm,
       runningAverageKmL,
@@ -89,13 +101,21 @@ export function calculateStats(processedRefuelings: Refueling[], vehicle?: Vehic
 
   const totalKmDriven = Math.max(0, lastOdometer - firstOdometer);
 
-  // Para o cálculo da média real de consumo entre abastecimentos
+  // Para o cálculo da média real de consumo entre abastecimentos:
   const refuelKm = sorted[sorted.length - 1].odometer - sorted[0].odometer;
-  const litersSinceFirst = sorted.slice(1).reduce((sum, r) => sum + r.liters, 0);
+
+  // Se todos os abastecimentos foram tanque cheio, usamos a reposição a partir do 2º;
+  // Se forem parciais (método de combustível que impulsionou cada trecho percorrido),
+  // somamos os litros colocados no início de cada trecho concluído (todos exceto o último,
+  // pois o último acabou de entrar no tanque para o trecho futuro).
+  const allFullTank = sorted.length > 1 && sorted.every((r) => r.isFullTank);
+  const consumedLitersTotal = allFullTank
+    ? sorted.slice(1).reduce((sum, r) => sum + r.liters, 0)
+    : (sorted.length > 1 ? sorted.slice(0, -1).reduce((sum, r) => sum + r.liters, 0) : totalLiters);
 
   let averageKmL = 0;
-  if (refuelKm > 0 && litersSinceFirst > 0) {
-    averageKmL = refuelKm / litersSinceFirst;
+  if (refuelKm > 0 && consumedLitersTotal > 0) {
+    averageKmL = refuelKm / consumedLitersTotal;
   } else if (totalKmDriven > 0 && totalLiters > 0) {
     averageKmL = totalKmDriven / totalLiters;
   } else {

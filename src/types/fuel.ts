@@ -33,6 +33,7 @@ export interface Refueling {
   location?: RefuelingLocation; // Localização GPS / Posto
   notes?: string;
   kmDriven?: number; // Calculado em relação ao abastecimento anterior
+  consumedLiters?: number; // Litros que impulsionaram este trecho
   consumptionKmL?: number; // Km/L calculated
   costPerKm?: number; // R$/Km
   runningAverageKmL?: number; // Média acumulada até este abastecimento
