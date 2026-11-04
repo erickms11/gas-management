@@ -76,14 +76,17 @@ export function calculateStats(processedRefuelings: Refueling[], vehicle?: Vehic
   // Ordenar por odômetro crescente
   const sorted = [...processedRefuelings].sort((a, b) => a.odometer - b.odometer);
   
-  // Se o veículo tiver initialOdometer definido pelo usuário, usamos como início do controle,
+  // Se o veículo tiver initialOdometer definido pelo usuário, usamos como início exato do controle,
   // caso contrário usamos o 1º abastecimento.
   const firstOdometer = (vehicle?.initialOdometer !== undefined && vehicle.initialOdometer > 0)
-    ? Math.min(vehicle.initialOdometer, sorted[0].odometer)
-    : sorted[0].odometer;
+    ? vehicle.initialOdometer
+    : (sorted.length > 0 ? sorted[0].odometer : 0);
 
-  // Odômetro mais recente (o maior entre os abastecimentos e o odômetro atual do veículo)
-  const lastOdometer = Math.max(sorted[sorted.length - 1].odometer, vehicle?.currentOdometer || 0);
+  // Odômetro mais recente (o definido no veículo pelo usuário, ou o último abastecimento)
+  const lastOdometer = (vehicle?.currentOdometer !== undefined && vehicle.currentOdometer > 0)
+    ? vehicle.currentOdometer
+    : (sorted.length > 0 ? sorted[sorted.length - 1].odometer : 0);
+
   const totalKmDriven = Math.max(0, lastOdometer - firstOdometer);
 
   // Para o cálculo da média real de consumo entre abastecimentos
