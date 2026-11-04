@@ -7,9 +7,8 @@ import { MaintenanceView } from './components/MaintenanceView';
 import { ChartsView } from './components/ChartsView';
 import { RefuelFormModal } from './components/RefuelFormModal';
 import { DataExportModal } from './components/DataExportModal';
-import { CarComparison } from './components/CarComparison';
-import { SettingsView } from './components/SettingsView';
 import { VehicleModal } from './components/VehicleModal';
+import { OthersView } from './components/OthersView';
 import {
   loadVehicles,
   saveVehicles,
@@ -22,7 +21,7 @@ import {
 } from './utils/storage';
 import { processRefuelings, calculateStats } from './utils/calculations';
 import { Vehicle, Refueling, MaintenanceItem } from './types/fuel';
-import { LayoutDashboard, History, Flame, Wrench, Plus, Scale, Settings } from 'lucide-react';
+import { LayoutDashboard, History, Flame, Wrench, Plus, Scale, Settings, MoreHorizontal } from 'lucide-react';
 
 export function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -30,7 +29,7 @@ export function App() {
   const [maintenance, setMaintenance] = useState<MaintenanceItem[]>([]);
   const [activeVehicleId, setActiveVehicleId] = useState<string>('v1');
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'historico' | 'flex' | 'comparativo' | 'manutencao' | 'configuracoes'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'historico' | 'flex' | 'comparativo' | 'manutencao' | 'configuracoes' | 'outros'>('dashboard');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingRefueling, setEditingRefueling] = useState<Refueling | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -362,17 +361,6 @@ export function App() {
         </>
       )}
 
-      {/* Visão Calculadora Flex */}
-      {activeTab === 'flex' && <FlexCalculator />}
-
-      {/* Visão Comparativo de Carros */}
-      {activeTab === 'comparativo' && (
-        <CarComparison
-          userStats={stats}
-          currentVehicleName={activeVehicle?.name}
-        />
-      )}
-
       {/* Visão Manutenções */}
       {activeTab === 'manutencao' && (
         <MaintenanceView
@@ -384,11 +372,13 @@ export function App() {
         />
       )}
 
-      {/* Visão Configurações & Backup */}
-      {activeTab === 'configuracoes' && (
-        <SettingsView
+      {/* Visão Outros (Hub: Ajustes & Dados, Comparativo de Carros, Calculadora Flex) */}
+      {(activeTab === 'outros' || activeTab === 'configuracoes' || activeTab === 'comparativo' || activeTab === 'flex') && (
+        <OthersView
           onDataChanged={reloadAllData}
-          onNavigate={(tab) => setActiveTab(tab)}
+          stats={stats}
+          currentVehicleName={activeVehicle?.name}
+          defaultSection={activeTab === 'comparativo' ? 'comparativo' : (activeTab === 'flex' ? 'flex' : 'ajustes')}
         />
       )}
 
@@ -455,11 +445,11 @@ export function App() {
         </button>
 
         <button
-          className={`nav-item ${activeTab === 'configuracoes' ? 'active' : ''}`}
-          onClick={() => setActiveTab('configuracoes')}
+          className={`nav-item ${activeTab === 'outros' || activeTab === 'configuracoes' || activeTab === 'comparativo' || activeTab === 'flex' ? 'active' : ''}`}
+          onClick={() => setActiveTab('outros')}
         >
-          <Settings size={20} />
-          <span>Ajustes</span>
+          <MoreHorizontal size={20} />
+          <span>Outros</span>
         </button>
       </nav>
     </div>
