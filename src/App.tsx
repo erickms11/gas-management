@@ -79,13 +79,13 @@ export function App() {
     setActiveVehicleId(activeId);
   };
 
+  const vehicleMaintenance = maintenance.filter((m) => m.vehicleId === activeVehicleId);
+  const activeVehicle = vehicles.find((v) => v.id === activeVehicleId);
+
   // Filtrar abastecimentos do veículo ativo
   const vehicleRefuelings = refuelings.filter((r) => r.vehicleId === activeVehicleId);
   const processedRefuelings = processRefuelings(vehicleRefuelings);
-  const stats = calculateStats(processedRefuelings);
-
-  const vehicleMaintenance = maintenance.filter((m) => m.vehicleId === activeVehicleId);
-  const activeVehicle = vehicles.find((v) => v.id === activeVehicleId);
+  const stats = calculateStats(processedRefuelings, activeVehicle);
 
   const handleSelectVehicle = (id: string) => {
     setActiveVehicleId(id);
@@ -323,6 +323,7 @@ export function App() {
         onSave={handleSaveRefueling}
         vehicleId={activeVehicleId}
         lastOdometer={stats.lastOdometer}
+        vehicleCurrentOdometer={activeVehicle?.currentOdometer}
         refuelingToEdit={editingRefueling}
       />
 

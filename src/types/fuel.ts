@@ -7,7 +7,8 @@ export interface Vehicle {
   model: string;
   year: number;
   licensePlate?: string;
-  currentOdometer: number; // em KM
+  initialOdometer?: number; // Odômetro inicial ao começar o controle (em KM)
+  currentOdometer: number; // Odômetro atual do veículo (em KM)
   tankCapacityLiters?: number;
   photoUrl?: string; // URL ou Base64 da imagem/miniatura do veículo
 }

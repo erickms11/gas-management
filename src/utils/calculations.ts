@@ -1,4 +1,4 @@
-import { Refueling, ConsumptionStats } from '../types/fuel';
+import { Refueling, ConsumptionStats, Vehicle } from '../types/fuel';
 
 /**
  * Recalcula a quilometragem percorrida e o consumo Km/L para uma lista de abastecimentos ordenados por odômetro asc.
@@ -54,16 +54,19 @@ export function processRefuelings(refuelings: Refueling[]): Refueling[] {
 /**
  * Calcula as estatísticas acumuladas do veículo
  */
-export function calculateStats(processedRefuelings: Refueling[]): ConsumptionStats {
+export function calculateStats(processedRefuelings: Refueling[], vehicle?: Vehicle): ConsumptionStats {
   if (processedRefuelings.length === 0) {
+    const initOdo = vehicle?.initialOdometer || 0;
+    const currOdo = vehicle?.currentOdometer || 0;
+    const km = currOdo > initOdo ? currOdo - initOdo : 0;
     return {
       totalSpent: 0,
       totalLiters: 0,
-      totalKmDriven: 0,
+      totalKmDriven: km,
       averageKmL: 0,
       averageCostPerKm: 0,
       averagePricePerLiter: 0,
-      lastOdometer: 0,
+      lastOdometer: currOdo,
     };
   }
 
@@ -72,16 +75,24 @@ export function calculateStats(processedRefuelings: Refueling[]): ConsumptionSta
 
   // Ordenar por odômetro crescente
   const sorted = [...processedRefuelings].sort((a, b) => a.odometer - b.odometer);
-  const firstOdometer = sorted[0].odometer;
-  const lastOdometer = sorted[sorted.length - 1].odometer;
-  const totalKmDriven = lastOdometer - firstOdometer;
+  
+  // Se o veículo tiver initialOdometer definido pelo usuário, usamos como início do controle,
+  // caso contrário usamos o 1º abastecimento.
+  const firstOdometer = (vehicle?.initialOdometer !== undefined && vehicle.initialOdometer > 0)
+    ? Math.min(vehicle.initialOdometer, sorted[0].odometer)
+    : sorted[0].odometer;
 
-  // Para o cálculo da média real de consumo, consideramos os litros colocados após o 1º registro de odômetro
+  // Odômetro mais recente (o maior entre os abastecimentos e o odômetro atual do veículo)
+  const lastOdometer = Math.max(sorted[sorted.length - 1].odometer, vehicle?.currentOdometer || 0);
+  const totalKmDriven = Math.max(0, lastOdometer - firstOdometer);
+
+  // Para o cálculo da média real de consumo entre abastecimentos
+  const refuelKm = sorted[sorted.length - 1].odometer - sorted[0].odometer;
   const litersSinceFirst = sorted.slice(1).reduce((sum, r) => sum + r.liters, 0);
 
   let averageKmL = 0;
-  if (totalKmDriven > 0 && litersSinceFirst > 0) {
-    averageKmL = totalKmDriven / litersSinceFirst;
+  if (refuelKm > 0 && litersSinceFirst > 0) {
+    averageKmL = refuelKm / litersSinceFirst;
   } else if (totalKmDriven > 0 && totalLiters > 0) {
     averageKmL = totalKmDriven / totalLiters;
   } else {

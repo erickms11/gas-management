@@ -15,6 +15,7 @@ const DEFAULT_VEHICLES: Vehicle[] = [
     model: 'Onix 1.0 Flex',
     year: 2022,
     licensePlate: 'ABC-1D23',
+    initialOdometer: 33400,
     currentOdometer: 34850,
     tankCapacityLiters: 44,
   },
@@ -25,6 +26,7 @@ const DEFAULT_VEHICLES: Vehicle[] = [
     model: 'Corolla 2.0',
     year: 2021,
     licensePlate: 'XYZ-9876',
+    initialOdometer: 50000,
     currentOdometer: 52100,
     tankCapacityLiters: 50,
   }

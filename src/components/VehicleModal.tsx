@@ -26,6 +26,7 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({
   const [model, setModel] = useState('');
   const [year, setYear] = useState('2023');
   const [licensePlate, setLicensePlate] = useState('');
+  const [initialOdometer, setInitialOdometer] = useState('30000');
   const [currentOdometer, setCurrentOdometer] = useState('35000');
   const [tankCapacityLiters, setTankCapacityLiters] = useState('45');
 
@@ -36,6 +37,8 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({
       setModel(vehicleToEdit.model);
       setYear(vehicleToEdit.year.toString());
       setLicensePlate(vehicleToEdit.licensePlate || '');
+      const initOdo = vehicleToEdit.initialOdometer !== undefined ? vehicleToEdit.initialOdometer : vehicleToEdit.currentOdometer;
+      setInitialOdometer(initOdo.toString());
       setCurrentOdometer(vehicleToEdit.currentOdometer.toString());
       setTankCapacityLiters(vehicleToEdit.tankCapacityLiters ? vehicleToEdit.tankCapacityLiters.toString() : '45');
     } else {
@@ -44,6 +47,7 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({
       setModel('');
       setYear(new Date().getFullYear().toString());
       setLicensePlate('');
+      setInitialOdometer('0');
       setCurrentOdometer('0');
       setTankCapacityLiters('45');
     }
@@ -56,6 +60,9 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({
       return;
     }
 
+    const initOdo = parseInt(initialOdometer, 10) || 0;
+    const currOdo = parseInt(currentOdometer, 10) || initOdo;
+
     const vehicleData: Vehicle = {
       id: vehicleToEdit ? vehicleToEdit.id : 'v_' + Date.now(),
       name: name.trim(),
@@ -63,7 +70,8 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({
       model: model.trim(),
       year: parseInt(year, 10) || new Date().getFullYear(),
       licensePlate: licensePlate.trim() || undefined,
-      currentOdometer: parseInt(currentOdometer, 10) || 0,
+      initialOdometer: initOdo,
+      currentOdometer: currOdo,
       tankCapacityLiters: parseFloat(tankCapacityLiters) || undefined,
     };
 
@@ -152,28 +160,46 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({
 
           <div className="form-row">
             <div className="form-group">
+              <label className="form-label">Odômetro Inicial (Km)</label>
+              <input
+                type="number"
+                className="form-input"
+                placeholder="Ex: 30000"
+                value={initialOdometer}
+                onChange={(e) => setInitialOdometer(e.target.value)}
+                required
+              />
+              <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>
+                Início do seu controle
+              </span>
+            </div>
+
+            <div className="form-group">
               <label className="form-label">Odômetro Atual (Km)</label>
               <input
                 type="number"
                 className="form-input"
-                placeholder="Ex: 34500"
+                placeholder="Ex: 34850"
                 value={currentOdometer}
                 onChange={(e) => setCurrentOdometer(e.target.value)}
                 required
               />
+              <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>
+                Atualizado nos abastecimentos
+              </span>
             </div>
+          </div>
 
-            <div className="form-group">
-              <label className="form-label">Capacidade do Tanque (L)</label>
-              <input
-                type="number"
-                step="0.5"
-                className="form-input"
-                placeholder="Ex: 45"
-                value={tankCapacityLiters}
-                onChange={(e) => setTankCapacityLiters(e.target.value)}
-              />
-            </div>
+          <div className="form-group">
+            <label className="form-label">Capacidade do Tanque (Litros)</label>
+            <input
+              type="number"
+              step="0.5"
+              className="form-input"
+              placeholder="Ex: 45"
+              value={tankCapacityLiters}
+              onChange={(e) => setTankCapacityLiters(e.target.value)}
+            />
           </div>
 
           <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>

@@ -8,6 +8,7 @@ interface RefuelFormModalProps {
   onSave: (refuelData: Omit<Refueling, 'id'>, editId?: string) => void;
   vehicleId: string;
   lastOdometer: number;
+  vehicleCurrentOdometer?: number;
   refuelingToEdit?: Refueling | null;
 }
 
@@ -17,6 +18,7 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
   onSave,
   vehicleId,
   lastOdometer,
+  vehicleCurrentOdometer,
   refuelingToEdit,
 }) => {
   if (!isOpen) return null;
@@ -24,8 +26,9 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
   // Modo de entrada: 'liters' (digitou litros) ou 'value' (digitou valor em R$)
   const [inputMode, setInputMode] = useState<'liters' | 'value'>('liters');
 
+  const baseOdo = lastOdometer || vehicleCurrentOdometer || 0;
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [odometer, setOdometer] = useState<string>(lastOdometer ? (lastOdometer + 450).toString() : '35000');
+  const [odometer, setOdometer] = useState<string>(baseOdo > 0 ? baseOdo.toString() : '');
   const [liters, setLiters] = useState<string>('35.0');
   const [totalValue, setTotalValue] = useState<string>(''); // R$ total digitado pelo usuário
   const [pricePerLiter, setPricePerLiter] = useState<string>('5.79');
@@ -53,7 +56,8 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
       setInputMode('liters');
     } else {
       setDate(new Date().toISOString().split('T')[0]);
-      setOdometer(lastOdometer ? (lastOdometer + 450).toString() : '35000');
+      const currentBase = lastOdometer || vehicleCurrentOdometer || 0;
+      setOdometer(currentBase > 0 ? currentBase.toString() : '');
       setLiters('35.0');
       setTotalValue('');
       setPricePerLiter('5.79');
@@ -64,7 +68,7 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
       setLocation(null);
       setInputMode('liters');
     }
-  }, [isOpen, refuelingToEdit, lastOdometer]);
+  }, [isOpen, refuelingToEdit, lastOdometer, vehicleCurrentOdometer]);
 
   const numPrice = parseFloat(pricePerLiter) || 0;
 
@@ -200,15 +204,20 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Odômetro Atual (Km)</label>
+              <label className="form-label">Odômetro no Abastecimento (Km)</label>
               <input
                 type="number"
                 className="form-input"
-                placeholder="Ex: 35200"
+                placeholder={baseOdo > 0 ? `Ex: ${baseOdo}` : 'Ex: 35000'}
                 value={odometer}
                 onChange={(e) => setOdometer(e.target.value)}
                 required
               />
+              {baseOdo > 0 && (
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  Último registrado: <strong>{baseOdo.toLocaleString('pt-BR')} Km</strong>
+                </span>
+              )}
             </div>
           </div>
 

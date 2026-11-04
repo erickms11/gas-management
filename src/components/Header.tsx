@@ -188,7 +188,7 @@ export const Header: React.FC<HeaderProps> = ({
                           {v.name}
                         </div>
                         <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                          {v.brand} {v.model} {v.year ? `(${v.year})` : ''}
+                          {v.brand} {v.model} • {v.currentOdometer.toLocaleString('pt-BR')} Km
                         </div>
                       </div>
                     </div>
