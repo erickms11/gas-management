@@ -27,13 +27,47 @@
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 
-  <!-- Service Worker Registration -->
+  <!-- Service Worker Registration & Auto-Update -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/gas-management/sw.js', { scope: '/gas-management/' })
-          .then((reg) => console.log('SW registrado com sucesso:', reg.scope))
+          .then((reg) => {
+            console.log('SW registrado com sucesso:', reg.scope);
+            
+            // Força verificação de atualização no servidor
+            reg.update();
+
+            // Ao retornar para o app no Android, verifica se há versão mais recente
+            document.addEventListener('visibilitychange', () => {
+              if (document.visibilityState === 'visible') {
+                reg.update();
+              }
+            });
+
+            // Se encontrar uma nova versão baixada, comanda ativação imediata
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('Nova versão do app detectada! Ativando...');
+                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                  }
+                });
+              }
+            });
+          })
           .catch((err) => console.warn('Erro ao registrar SW:', err));
+
+        // Quando o novo Service Worker assumir o controle, recarrega a página de forma fluida
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
+        });
       });
     }
   </script>

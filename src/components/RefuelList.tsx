@@ -103,11 +103,11 @@ export const RefuelList: React.FC<RefuelListProps> = ({ refuelings, onDelete, on
                 {item.liters.toFixed(2)} L × R$ {item.pricePerLiter.toFixed(2)} | Odômetro: {item.odometer.toLocaleString('pt-BR')} Km
               </div>
 
-              {item.kmDriven && (
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '2px' }}>
-                  ⚡ +{item.kmDriven} Km rodados desde o último abastecimento
+              {item.kmDriven ? (
+                <div style={{ fontSize: '0.74rem', color: 'var(--text-dim)', marginTop: '3px' }}>
+                  ⚡ Rodou {item.kmDriven.toLocaleString('pt-BR')} Km desde o anterior
                 </div>
-              )}
+              ) : null}
             </div>
 
             <div className="refuel-cost">
@@ -116,15 +116,31 @@ export const RefuelList: React.FC<RefuelListProps> = ({ refuelings, onDelete, on
               </div>
 
               {item.consumptionKmL ? (
-                <div className="refuel-kml">
-                  <Gauge size={12} style={{ display: 'inline', marginRight: '3px' }} />
-                  {item.consumptionKmL.toFixed(2)} Km/L
-                  {!item.isFullTank && (
-                    <span style={{ fontSize: '0.68rem', opacity: 0.8, marginLeft: '3px', fontWeight: 500 }}>(parcial)</span>
-                  )}
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    background: 'rgba(16, 185, 129, 0.14)',
+                    border: '1px solid rgba(16, 185, 129, 0.35)',
+                    borderRadius: '8px',
+                    padding: '2px 6px',
+                    marginTop: '4px',
+                  }}
+                  title="Consumo de combustível alcançado pelo veículo neste tanque"
+                >
+                  <Gauge size={12} color="var(--accent-green)" />
+                  <span style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--accent-green)' }}>
+                    {item.consumptionKmL.toFixed(2)} Km/L
+                  </span>
+                  <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)' }}>
+                    {item.isFullTank ? 'consumo' : '(parcial)'}
+                  </span>
                 </div>
               ) : (
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>1º Registro (base)</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginTop: '4px' }}>
+                  1º abastecimento (base)
+                </div>
               )}
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>

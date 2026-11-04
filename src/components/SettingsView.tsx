@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Download, Upload, RotateCcw, Trash2, CheckCircle2, AlertCircle, FileJson, Database, ShieldAlert } from 'lucide-react';
+import { Download, Upload, RotateCcw, Trash2, CheckCircle2, AlertCircle, FileJson, Database, ShieldAlert, RefreshCw } from 'lucide-react';
 import { exportDataToJson, importDataFromJson, resetToSampleData, clearAllData } from '../utils/storage';
 
 interface SettingsModalProps {
@@ -10,6 +10,26 @@ interface SettingsModalProps {
 export const SettingsView: React.FC<SettingsModalProps> = ({ onDataChanged }) => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleForceUpdateApp = async () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of registrations) {
+          await reg.unregister();
+        }
+      }
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        for (const key of keys) {
+          await caches.delete(key);
+        }
+      }
+      window.location.reload();
+    } catch {
+      window.location.reload();
+    }
+  };
 
   const handleExport = () => {
     try {
@@ -273,6 +293,49 @@ export const SettingsView: React.FC<SettingsModalProps> = ({ onDataChanged }) =>
               <Trash2 size={15} /> Limpar Tudo
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Seção 3: Versão do App & Atualização Imediata */}
+      <div className="glass-card">
+        <div style={{ fontSize: '0.88rem', fontWeight: 700, marginBottom: '14px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <RefreshCw size={18} color="var(--primary)" /> Versão do App & Atualização
+        </div>
+
+        <div
+          style={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '12px',
+            padding: '12px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+          }}
+        >
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}>
+              Forçar Atualização
+            </div>
+            <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+              Limpa o cache offline do Android e recarrega os arquivos mais novos do servidor
+            </div>
+          </div>
+
+          <button
+            onClick={handleForceUpdateApp}
+            className="btn-primary"
+            style={{
+              width: 'auto',
+              padding: '8px 14px',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              flexShrink: 0,
+            }}
+          >
+            <RefreshCw size={14} /> Atualizar
+          </button>
         </div>
       </div>
     </div>
