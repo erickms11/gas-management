@@ -37,9 +37,35 @@ export function App() {
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
   const [vehicleToEdit, setVehicleToEdit] = useState<Vehicle | null>(null);
 
+  // PWA Install Prompt
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+
   useEffect(() => {
     reloadAllData();
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
   }, []);
+
+  const handleInstallApp = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setIsInstallable(false);
+    }
+    setDeferredPrompt(null);
+  };
 
   const reloadAllData = () => {
     const loadedV = loadVehicles();
@@ -181,6 +207,49 @@ export function App() {
 
   return (
     <div className="app-container">
+      {/* Banner de Instalação Mobile PWA */}
+      {isInstallable && (
+        <div
+          style={{
+            background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(37, 99, 235, 0.2) 100%)',
+            border: '1px solid rgba(56, 189, 248, 0.35)',
+            borderRadius: '14px',
+            padding: '12px 14px',
+            marginBottom: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '10px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '1.4rem' }}>📲</span>
+            <div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                Instalar no Android
+              </div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                Acesse mais rápido direto da sua tela inicial
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={handleInstallApp}
+            className="btn-primary"
+            style={{
+              width: 'auto',
+              padding: '7px 14px',
+              fontSize: '0.78rem',
+              fontWeight: 800,
+              borderRadius: '10px',
+              flexShrink: 0,
+            }}
+          >
+            Instalar
+          </button>
+        </div>
+      )}
+
       {/* Top Header */}
       <Header
         vehicles={vehicles}

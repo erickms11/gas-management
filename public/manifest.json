@@ -1,0 +1,38 @@
+{
+  "name": "GasControl - Gestão de Combustível",
+  "short_name": "GasControl",
+  "description": "Gerenciamento de consumo de combustível, abastecimentos e manutenções",
+  "start_url": "/gas-management/",
+  "scope": "/gas-management/",
+  "id": "/gas-management/",
+  "display": "standalone",
+  "background_color": "#0b1120",
+  "theme_color": "#0b1120",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/gas-management/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/gas-management/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/gas-management/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/gas-management/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

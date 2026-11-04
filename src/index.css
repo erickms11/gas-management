@@ -40,8 +40,16 @@ body {
   background-color: var(--bg-main);
   color: var(--text-main);
   min-height: 100vh;
+  min-height: -webkit-fill-available;
   overflow-x: hidden;
-  padding-bottom: 90px; /* Espaço para menu inferior em telas mobile */
+  padding-bottom: calc(85px + env(safe-area-inset-bottom, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html {
+  height: -webkit-fill-available;
 }
 
 /* Scrollbar estilizada */
@@ -59,9 +67,9 @@ body {
 
 /* Container de Layout Mobile App Centrado */
 .app-container {
-  max-width: 640px;
+  max-width: 480px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 12px 14px;
 }
 
 /* Glassmorphism Cards */
@@ -140,15 +148,15 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(15, 23, 42, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(11, 17, 32, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: space-around;
-  padding: 8px 12px;
+  padding: 6px 10px calc(8px + env(safe-area-inset-bottom, 0px));
   z-index: 100;
-  max-width: 640px;
+  max-width: 480px;
   margin: 0 auto;
 }
 
