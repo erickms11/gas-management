@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { TrendingUp, BarChart2, Gauge, Zap } from 'lucide-react';
 import { Refueling } from '../types/fuel';
+import { formatShortDate, getDateTimestamp } from '../utils/calculations';
 
 interface ChartsViewProps {
   refuelings: Refueling[];
@@ -20,11 +21,11 @@ interface ChartsViewProps {
 export const ChartsView: React.FC<ChartsViewProps> = ({ refuelings }) => {
   const [selectedMetric, setSelectedMetric] = useState<'all' | 'kml' | 'preco' | 'gasto'>('all');
 
-  // Ordenar abastecimentos por data crescente para os gráficos
+  // Ordenar abastecimentos por data crescente para os gráficos sem desvio de fuso
   const chartData = [...refuelings]
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .sort((a, b) => getDateTimestamp(a.date) - getDateTimestamp(b.date))
     .map((r) => ({
-      data: new Date(r.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+      data: formatShortDate(r.date),
       preco: r.pricePerLiter,
       kml: r.consumptionKmL ? Number(r.consumptionKmL.toFixed(2)) : null,
       mediaKml: r.runningAverageKmL ? Number(r.runningAverageKmL.toFixed(2)) : (r.consumptionKmL ? Number(r.consumptionKmL.toFixed(2)) : null),
@@ -42,78 +43,29 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ refuelings }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '20px' }}>
-      {/* Botões de alternância rápida de gráficos */}
-      <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
+      {/* Botões de alternância rápida de gráficos (Liquid Glass Pills) */}
+      <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
         <button
           onClick={() => setSelectedMetric('all')}
-          style={{
-            padding: '5px 12px',
-            fontSize: '0.78rem',
-            fontWeight: 700,
-            borderRadius: '20px',
-            border: 'none',
-            cursor: 'pointer',
-            background: selectedMetric === 'all' ? 'var(--primary)' : 'var(--bg-surface)',
-            color: selectedMetric === 'all' ? '#fff' : 'var(--text-muted)',
-            transition: 'all 0.2s',
-          }}
+          className={`liquid-pill-btn ${selectedMetric === 'all' ? 'active' : ''}`}
         >
           Todos
         </button>
         <button
           onClick={() => setSelectedMetric('kml')}
-          style={{
-            padding: '5px 12px',
-            fontSize: '0.78rem',
-            fontWeight: 700,
-            borderRadius: '20px',
-            border: 'none',
-            cursor: 'pointer',
-            background: selectedMetric === 'kml' ? 'var(--accent-green)' : 'var(--bg-surface)',
-            color: selectedMetric === 'kml' ? '#fff' : 'var(--text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            transition: 'all 0.2s',
-          }}
+          className={`liquid-pill-btn ${selectedMetric === 'kml' ? 'active-green' : ''}`}
         >
           <Gauge size={13} /> Consumo (Km/L)
         </button>
         <button
           onClick={() => setSelectedMetric('preco')}
-          style={{
-            padding: '5px 12px',
-            fontSize: '0.78rem',
-            fontWeight: 700,
-            borderRadius: '20px',
-            border: 'none',
-            cursor: 'pointer',
-            background: selectedMetric === 'preco' ? 'var(--primary)' : 'var(--bg-surface)',
-            color: selectedMetric === 'preco' ? '#fff' : 'var(--text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            transition: 'all 0.2s',
-          }}
+          className={`liquid-pill-btn ${selectedMetric === 'preco' ? 'active' : ''}`}
         >
           <TrendingUp size={13} /> Preço (R$/L)
         </button>
         <button
           onClick={() => setSelectedMetric('gasto')}
-          style={{
-            padding: '5px 12px',
-            fontSize: '0.78rem',
-            fontWeight: 700,
-            borderRadius: '20px',
-            border: 'none',
-            cursor: 'pointer',
-            background: selectedMetric === 'gasto' ? 'var(--accent-fuel)' : 'var(--bg-surface)',
-            color: selectedMetric === 'gasto' ? '#fff' : 'var(--text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            transition: 'all 0.2s',
-          }}
+          className={`liquid-pill-btn ${selectedMetric === 'gasto' ? 'active' : ''}`}
         >
           <BarChart2 size={13} /> Gastos (R$)
         </button>

@@ -62,7 +62,7 @@ export const FlexCalculator: React.FC = () => {
           step="1"
           value={ratioThreshold}
           onChange={(e) => setRatioThreshold(parseInt(e.target.value, 10))}
-          style={{ width: '100%', accentColor: 'var(--primary)' }}
+          className="liquid-slider"
         />
         <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textAlign: 'center', marginTop: '2px' }}>
           Regra padrão nacional: 70%

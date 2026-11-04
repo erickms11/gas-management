@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Fuel, Calendar, MapPin, Trash2, Gauge, Filter, ExternalLink, Pencil } from 'lucide-react';
 import { Refueling } from '../types/fuel';
+import { formatDisplayDate, getDateTimestamp } from '../utils/calculations';
 
 interface RefuelListProps {
   refuelings: Refueling[];
@@ -15,8 +16,8 @@ export const RefuelList: React.FC<RefuelListProps> = ({ refuelings, onDelete, on
     ? refuelings
     : refuelings.filter((r) => r.fuelType === filterFuel);
 
-  // Exibir do mais recente para o mais antigo
-  const sorted = [...filtered].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  // Exibir do mais recente para o mais antigo sem desvio de fuso horário
+  const sorted = [...filtered].sort((a, b) => getDateTimestamp(b.date) - getDateTimestamp(a.date));
 
   const getBadgeStyle = (type: string) => {
     if (type.includes('Etanol')) return 'badge-etanol';
@@ -62,7 +63,7 @@ export const RefuelList: React.FC<RefuelListProps> = ({ refuelings, onDelete, on
                 </span>
                 <span className="refuel-date">
                   <Calendar size={12} style={{ display: 'inline', marginRight: '4px' }} />
-                  {new Date(item.date).toLocaleDateString('pt-BR')}
+                  {formatDisplayDate(item.date)}
                 </span>
               </div>
 

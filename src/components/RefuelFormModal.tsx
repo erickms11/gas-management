@@ -213,51 +213,21 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
           </div>
 
           <div className="form-row">
-            {/* Toggle: Litros ou Valor (R$) */}
+            {/* Toggle: Litros ou Valor (R$) - Segmented Liquid Glass Control */}
             <div className="form-group" style={{ gridColumn: '1 / -1' }}>
               <label className="form-label">Como você quer registrar?</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div className="liquid-segment">
                 <button
                   type="button"
                   onClick={() => setInputMode('liters')}
-                  style={{
-                    flex: 1,
-                    padding: '9px',
-                    borderRadius: '10px',
-                    border: inputMode === 'liters' ? '2px solid var(--primary)' : '2px solid transparent',
-                    background: inputMode === 'liters' ? 'rgba(59,130,246,0.15)' : 'var(--bg-surface)',
-                    color: inputMode === 'liters' ? 'var(--primary)' : 'var(--text-muted)',
-                    fontWeight: 700,
-                    fontSize: '0.82rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                    transition: 'all 0.2s',
-                  }}
+                  className={`liquid-segment-btn ${inputMode === 'liters' ? 'active' : ''}`}
                 >
                   <Droplets size={15} /> Litros abastecidos
                 </button>
                 <button
                   type="button"
                   onClick={() => setInputMode('value')}
-                  style={{
-                    flex: 1,
-                    padding: '9px',
-                    borderRadius: '10px',
-                    border: inputMode === 'value' ? '2px solid var(--accent-fuel)' : '2px solid transparent',
-                    background: inputMode === 'value' ? 'rgba(245,158,11,0.15)' : 'var(--bg-surface)',
-                    color: inputMode === 'value' ? 'var(--accent-fuel)' : 'var(--text-muted)',
-                    fontWeight: 700,
-                    fontSize: '0.82rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                    transition: 'all 0.2s',
-                  }}
+                  className={`liquid-segment-btn ${inputMode === 'value' ? 'active-fuel' : ''}`}
                 >
                   <DollarSign size={15} /> Valor gasto (R$)
                 </button>

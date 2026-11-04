@@ -131,3 +131,50 @@ export function calculateFlexAdvantage(priceEthanol: number, priceGasoline: numb
     thresholdPercent: customRatio * 100,
   };
 }
+
+/**
+ * Converte com precisão uma string de data (ex: '2026-10-14' ou ISO) para exibição em pt-BR (ex: '14/10/2026')
+ * evitando o bug clássico de timezone em que '2026-10-14' (UTC) virava '13/10' no fuso do Brasil (UTC-3).
+ */
+export function formatDisplayDate(dateStr: string): string {
+  if (!dateStr) return '';
+  const cleanDate = dateStr.split('T')[0];
+  const parts = cleanDate.split('-');
+  if (parts.length === 3) {
+    const [year, month, day] = parts;
+    if (day && month && year) {
+      return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+    }
+  }
+  return new Date(dateStr).toLocaleDateString('pt-BR');
+}
+
+/**
+ * Retorna no formato curto dia/mês (ex: '14/10') sem alteração de fuso horário
+ */
+export function formatShortDate(dateStr: string): string {
+  if (!dateStr) return '';
+  const cleanDate = dateStr.split('T')[0];
+  const parts = cleanDate.split('-');
+  if (parts.length === 3) {
+    const [, month, day] = parts;
+    if (day && month) {
+      return `${day.padStart(2, '0')}/${month.padStart(2, '0')}`;
+    }
+  }
+  return new Date(dateStr).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+}
+
+/**
+ * Converte data string para timestamp de ordenação sem desvio de fuso horário
+ */
+export function getDateTimestamp(dateStr: string): number {
+  if (!dateStr) return 0;
+  const cleanDate = dateStr.split('T')[0];
+  const parts = cleanDate.split('-');
+  if (parts.length === 3) {
+    const [y, m, d] = parts.map(Number);
+    return new Date(y, m - 1, d, 12, 0, 0).getTime();
+  }
+  return new Date(dateStr).getTime();
+}

@@ -105,24 +105,13 @@ export const CarComparison: React.FC<CarComparisonProps> = ({ userStats, current
         </div>
       </div>
 
-      {/* Filtros de Categoria */}
-      <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
+      {/* Filtros de Categoria (Liquid Glass Pills) */}
+      <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
         {(['Todos', 'Combustão', 'Híbrido', 'Elétrico'] as const).map(cat => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            style={{
-              padding: '6px 14px',
-              borderRadius: '20px',
-              border: selectedCategory === cat ? '1px solid var(--primary)' : '1px solid var(--border-color)',
-              background: selectedCategory === cat ? 'var(--primary)' : 'var(--bg-surface)',
-              color: selectedCategory === cat ? '#ffffff' : 'var(--text-muted)',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              whiteSpace: 'nowrap',
-            }}
+            className={`liquid-pill-btn ${selectedCategory === cat ? 'active' : ''}`}
           >
             {cat === 'Todos' ? '🚗 Todos' : cat === 'Combustão' ? '⛽ Combustão' : cat === 'Híbrido' ? '⚡ Híbridos' : '🔋 Elétricos'}
           </button>
