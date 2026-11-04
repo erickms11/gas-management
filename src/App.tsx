@@ -206,7 +206,13 @@ export function App() {
   };
 
   return (
-    <div className="app-container">
+    <div className="liquid-app-wrapper">
+      {/* Ambient Liquid Glow Orbs - Luzes dinâmicas de fundo para refração do vidro líquido */}
+      <div className="ambient-blob blob-cyan" aria-hidden="true" />
+      <div className="ambient-blob blob-purple" aria-hidden="true" />
+      <div className="ambient-blob blob-amber" aria-hidden="true" />
+
+      <div className="app-container">
       {/* Banner de Instalação Mobile PWA */}
       {isInstallable && (
         <div
@@ -378,6 +384,7 @@ export function App() {
           <span>Ajustes</span>
         </button>
       </nav>
+    </div>
     </div>
   );
 }
