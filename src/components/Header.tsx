@@ -6,8 +6,6 @@ interface HeaderProps {
   vehicles: Vehicle[];
   activeVehicleId: string;
   onSelectVehicle: (id: string) => void;
-  onOpenAddModal: () => void;
-  onOpenExportModal?: () => void;
   onOpenVehicleModal: (vehicleToEdit?: Vehicle | null) => void;
 }
 
@@ -15,7 +13,6 @@ export const Header: React.FC<HeaderProps> = ({
   vehicles,
   activeVehicleId,
   onSelectVehicle,
-  onOpenAddModal,
   onOpenVehicleModal,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -58,80 +55,54 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Centro / Direita: Carro Ativo (Clicável) + Botão Abastecer */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flex: 1, justifyContent: 'flex-end' }}>
-          {/* Botão do Carro: Clicar abre a lista de carros para trocar, editar ou cadastrar novo */}
-          <button
-            type="button"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'var(--bg-surface)',
-              border: isDropdownOpen ? '1px solid var(--primary)' : '1px solid var(--border-color)',
-              borderRadius: '14px',
-              padding: '6px 10px',
-              color: 'var(--text-main)',
-              cursor: 'pointer',
-              maxWidth: '180px',
-              textAlign: 'left',
-              transition: 'all 0.2s',
-            }}
-            title="Clique para trocar ou gerenciar veículos"
-          >
-            <Car size={16} color="var(--primary)" style={{ flexShrink: 0 }} />
-            <div style={{ minWidth: 0, overflow: 'hidden' }}>
-              <div
-                style={{
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  color: 'var(--text-main)',
-                }}
-              >
-                {activeVehicle ? activeVehicle.name : 'Meu Carro'}
-              </div>
-              <div
-                style={{
-                  fontSize: '0.65rem',
-                  color: 'var(--text-muted)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {activeVehicle ? `${activeVehicle.brand} ${activeVehicle.model}` : 'Selecione'}
-              </div>
+        {/* Direita: Botão do Carro Ativo (Clicar abre a lista de carros para trocar, editar ou cadastrar novo) */}
+        <button
+          type="button"
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'var(--bg-surface)',
+            border: isDropdownOpen ? '1px solid var(--primary)' : '1px solid var(--border-color)',
+            borderRadius: '14px',
+            padding: '6px 12px',
+            color: 'var(--text-main)',
+            cursor: 'pointer',
+            maxWidth: '220px',
+            textAlign: 'left',
+            transition: 'all 0.2s',
+          }}
+          title="Clique para trocar ou gerenciar veículos"
+        >
+          <Car size={18} color="var(--primary)" style={{ flexShrink: 0 }} />
+          <div style={{ minWidth: 0, overflow: 'hidden' }}>
+            <div
+              style={{
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                color: 'var(--text-main)',
+              }}
+            >
+              {activeVehicle ? activeVehicle.name : 'Meu Carro'}
             </div>
-            <ChevronDown size={14} color="var(--text-muted)" style={{ flexShrink: 0, marginLeft: '2px' }} />
-          </button>
-
-          {/* Botão Novo Abastecimento rápido */}
-          <button
-            type="button"
-            onClick={onOpenAddModal}
-            style={{
-              background: 'var(--primary-gradient)',
-              border: 'none',
-              borderRadius: '12px',
-              width: '36px',
-              height: '36px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              cursor: 'pointer',
-              flexShrink: 0,
-              boxShadow: '0 4px 12px rgba(56, 189, 248, 0.35)',
-            }}
-            title="Novo Abastecimento"
-          >
-            <Plus size={20} />
-          </button>
-        </div>
+            <div
+              style={{
+                fontSize: '0.68rem',
+                color: 'var(--text-muted)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {activeVehicle ? `${activeVehicle.brand} ${activeVehicle.model}` : 'Selecione'}
+            </div>
+          </div>
+          <ChevronDown size={15} color="var(--text-muted)" style={{ flexShrink: 0, marginLeft: '2px' }} />
+        </button>
       </header>
 
       {/* Menu Dropdown de Seleção / Edição do Carro */}

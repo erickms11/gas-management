@@ -255,8 +255,6 @@ export function App() {
         vehicles={vehicles}
         activeVehicleId={activeVehicleId}
         onSelectVehicle={handleSelectVehicle}
-        onOpenAddModal={handleOpenNewModal}
-        onOpenExportModal={() => setIsExportModalOpen(true)}
         onOpenVehicleModal={handleOpenVehicleModal}
       />
 
