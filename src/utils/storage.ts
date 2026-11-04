@@ -106,34 +106,54 @@ const DEFAULT_MAINTENANCE: MaintenanceItem[] = [
   {
     id: 'm1',
     vehicleId: 'v1',
+    type: 'preventiva',
     title: 'Troca de Óleo e Filtro de Óleo',
     category: 'Óleo & Filtro',
-    lastServiceDate: '2026-06-15',
-    lastServiceOdometer: 30000,
-    nextServiceOdometer: 40000,
-    nextServiceDate: '2026-12-15',
-    completed: false,
-    notes: 'Utilizar óleo 5W30 Sintético',
+    date: '2026-11-20',
+    location: 'Troca de Óleo Express',
+    cost: 260,
+    odometer: 160000,
+    status: 'agendado',
+    notes: 'Óleo sintético 5W30 + filtro de óleo e ar',
   },
   {
     id: 'm2',
     vehicleId: 'v1',
-    title: 'Alinhamento e Balanceamento dos Pneus',
-    category: 'Pneus',
-    lastServiceDate: '2026-04-10',
-    lastServiceOdometer: 28000,
-    nextServiceOdometer: 38000,
-    completed: false,
+    type: 'preventiva',
+    title: 'Troca do Óleo do Câmbio',
+    category: 'Câmbio',
+    date: '2026-12-15',
+    location: 'Oficina Especializada em Transmissão',
+    cost: 580,
+    odometer: 165000,
+    status: 'agendado',
+    notes: 'Verificar nível e fluido original recomendado',
   },
   {
     id: 'm3',
     vehicleId: 'v1',
-    title: 'Pagamento IPVA 2026',
-    category: 'IPVA/Seguro',
-    lastServiceDate: '2026-01-20',
-    lastServiceOdometer: 25000,
-    nextServiceDate: '2027-01-20',
-    completed: true,
+    type: 'pontual',
+    title: 'Conserto de Pneu Furado',
+    category: 'Pneus',
+    date: '2026-10-18',
+    location: 'Borracharia São Judas',
+    cost: 45,
+    odometer: 158500,
+    status: 'concluido',
+    notes: 'Vulcanização após parafuso no pneu traseiro direito',
+  },
+  {
+    id: 'm4',
+    vehicleId: 'v1',
+    type: 'pontual',
+    title: 'Reparo no Para-choque',
+    category: 'Funilaria',
+    date: '2026-09-05',
+    location: 'Funilaria & Martelinho de Ouro',
+    cost: 380,
+    odometer: 157200,
+    status: 'concluido',
+    notes: 'Pintura localizada de arranhão no estacionamento',
   }
 ];
 
@@ -178,7 +198,15 @@ export function loadMaintenance(): MaintenanceItem[] {
     return DEFAULT_MAINTENANCE;
   }
   try {
-    return JSON.parse(data);
+    const parsed: any[] = JSON.parse(data);
+    // Normalizar compatibilidade para itens salvos em versões anteriores
+    return parsed.map((item) => ({
+      ...item,
+      type: item.type || 'preventiva',
+      status: item.status || (item.completed ? 'concluido' : 'agendado'),
+      date: item.date || item.nextServiceDate || item.lastServiceDate || new Date().toISOString().split('T')[0],
+      odometer: item.odometer ?? item.nextServiceOdometer ?? item.lastServiceOdometer,
+    }));
   } catch {
     return DEFAULT_MAINTENANCE;
   }

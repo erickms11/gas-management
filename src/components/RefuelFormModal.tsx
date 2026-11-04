@@ -6,6 +6,7 @@ interface RefuelFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (refuelData: Omit<Refueling, 'id'>, editId?: string) => void;
+  onDelete?: (id: string) => void;
   vehicleId: string;
   lastOdometer: number;
   vehicleCurrentOdometer?: number;
@@ -16,6 +17,7 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
   isOpen,
   onClose,
   onSave,
+  onDelete,
   vehicleId,
   lastOdometer,
   vehicleCurrentOdometer,
@@ -204,7 +206,7 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Odômetro no Abastecimento (Km)</label>
+              <label className="form-label">Odômetro (Km)</label>
               <input
                 type="number"
                 className="form-input"
@@ -215,7 +217,7 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
               />
               {baseOdo > 0 && (
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  Último registrado: <strong>{baseOdo.toLocaleString('pt-BR')} Km</strong>
+                  Último: <strong>{baseOdo.toLocaleString('pt-BR')} Km</strong>
                 </span>
               )}
             </div>
@@ -430,9 +432,41 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
             />
           </div>
 
-          <button type="submit" className="btn-primary" style={{ marginTop: '10px' }}>
-            <Check size={18} /> {refuelingToEdit ? 'Salvar Alterações' : 'Salvar Abastecimento'}
-          </button>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '14px', alignItems: 'center' }}>
+            {refuelingToEdit && onDelete && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm('Tem certeza que deseja excluir este abastecimento?')) {
+                    onDelete(refuelingToEdit.id);
+                    onClose();
+                  }
+                }}
+                style={{
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  border: '1px solid rgba(239, 68, 68, 0.4)',
+                  color: '#f87171',
+                  borderRadius: '12px',
+                  padding: '12px 14px',
+                  fontSize: '0.86rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  flexShrink: 0,
+                }}
+                title="Excluir este abastecimento"
+              >
+                <Trash2 size={16} />
+                <span>Excluir</span>
+              </button>
+            )}
+
+            <button type="submit" className="btn-primary" style={{ flex: 1, margin: 0 }}>
+              <Check size={18} /> {refuelingToEdit ? 'Salvar Alterações' : 'Salvar Abastecimento'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -5,9 +5,10 @@ import { exportDataToJson, importDataFromJson, resetToSampleData, clearAllData }
 interface SettingsModalProps {
   isOpen?: boolean;
   onDataChanged: () => void;
+  onNavigate?: (tab: 'dashboard' | 'historico' | 'flex' | 'comparativo' | 'manutencao') => void;
 }
 
-export const SettingsView: React.FC<SettingsModalProps> = ({ onDataChanged }) => {
+export const SettingsView: React.FC<SettingsModalProps> = ({ onDataChanged, onNavigate }) => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -295,6 +296,51 @@ export const SettingsView: React.FC<SettingsModalProps> = ({ onDataChanged }) =>
           </div>
         </div>
       </div>
+
+      {/* Seção Ferramentas & Outras Telas */}
+      {onNavigate && (
+        <div className="glass-card">
+          <div style={{ fontSize: '0.88rem', fontWeight: 700, marginBottom: '12px', color: 'var(--text-main)' }}>
+            Ferramentas & Análises
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button
+              onClick={() => onNavigate('comparativo')}
+              className="liquid-segment-btn"
+              style={{
+                width: '100%',
+                justifyContent: 'space-between',
+                padding: '12px 14px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '12px',
+                color: 'var(--text-main)',
+              }}
+            >
+              <span>⚖️ Comparar Rendimento com Outros Carros</span>
+              <span style={{ color: 'var(--primary)', fontSize: '0.8rem' }}>Abrir ➔</span>
+            </button>
+
+            <button
+              onClick={() => onNavigate('flex')}
+              className="liquid-segment-btn"
+              style={{
+                width: '100%',
+                justifyContent: 'space-between',
+                padding: '12px 14px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '12px',
+                color: 'var(--text-main)',
+              }}
+            >
+              <span>⛽ Calculadora Flex (Etanol x Gasolina)</span>
+              <span style={{ color: 'var(--primary)', fontSize: '0.8rem' }}>Abrir ➔</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Seção 3: Versão do App & Atualização Imediata */}
       <div className="glass-card">

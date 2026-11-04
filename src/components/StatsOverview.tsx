@@ -67,7 +67,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({
           <Navigation size={18} color="var(--accent-purple)" />
         </div>
         <div className="stat-value">
-          +{stats.totalKmDriven.toLocaleString('pt-BR')}
+          {stats.totalKmDriven.toLocaleString('pt-BR')}
           <span className="stat-unit">Km</span>
         </div>
         <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>

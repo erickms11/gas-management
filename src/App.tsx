@@ -3,7 +3,7 @@ import { Header } from './components/Header';
 import { StatsOverview } from './components/StatsOverview';
 import { RefuelList } from './components/RefuelList';
 import { FlexCalculator } from './components/FlexCalculator';
-import { MaintenanceReminders } from './components/MaintenanceReminders';
+import { MaintenanceView } from './components/MaintenanceView';
 import { ChartsView } from './components/ChartsView';
 import { RefuelFormModal } from './components/RefuelFormModal';
 import { DataExportModal } from './components/DataExportModal';
@@ -140,20 +140,40 @@ export function App() {
   };
 
   const handleToggleMaintenance = (id: string) => {
-    const updated = maintenance.map((m) =>
-      m.id === id ? { ...m, completed: !m.completed } : m
-    );
+    const updated = maintenance.map((m) => {
+      if (m.id !== id) return m;
+      const isDone = m.status === 'concluido' || m.completed === true;
+      const nextStatus = isDone ? 'agendado' : 'concluido';
+      return {
+        ...m,
+        status: nextStatus as 'agendado' | 'concluido',
+        completed: nextStatus === 'concluido',
+      };
+    });
     setMaintenance(updated);
     saveMaintenance(updated);
   };
 
-  const handleAddMaintenance = (newItem: Omit<MaintenanceItem, 'id'>) => {
-    const item: MaintenanceItem = {
-      ...newItem,
-      id: 'm_' + Date.now(),
-      vehicleId: activeVehicleId,
-    };
-    const updated = [...maintenance, item];
+  const handleSaveMaintenance = (data: Omit<MaintenanceItem, 'id' | 'vehicleId'>, editId?: string) => {
+    let updated: MaintenanceItem[];
+    if (editId) {
+      updated = maintenance.map((m) =>
+        m.id === editId ? { ...data, id: editId, vehicleId: activeVehicleId } : m
+      );
+    } else {
+      const newItem: MaintenanceItem = {
+        ...data,
+        id: 'm_' + Date.now(),
+        vehicleId: activeVehicleId,
+      };
+      updated = [newItem, ...maintenance];
+    }
+    setMaintenance(updated);
+    saveMaintenance(updated);
+  };
+
+  const handleDeleteMaintenance = (id: string) => {
+    const updated = maintenance.filter((m) => m.id !== id);
     setMaintenance(updated);
     saveMaintenance(updated);
   };
@@ -272,6 +292,54 @@ export function App() {
             initialOdometer={activeVehicle?.initialOdometer}
             currentOdometer={activeVehicle?.currentOdometer || stats.lastOdometer}
           />
+
+          {/* Atalho Rápido para Oficina & Manutenções */}
+          <div
+            className="glass-card clickable-card"
+            onClick={() => setActiveTab('manutencao')}
+            style={{
+              padding: '12px 14px',
+              marginTop: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '10px',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  background: 'rgba(56, 189, 248, 0.16)',
+                  border: '1px solid rgba(56, 189, 248, 0.35)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Wrench size={18} color="var(--primary)" />
+              </div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--text-main)' }}>
+                  Oficina & Manutenções
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  {vehicleMaintenance.filter((m) => (m.status || (m.completed ? 'concluido' : 'agendado')) === 'agendado').length > 0
+                    ? `⚠️ ${vehicleMaintenance.filter((m) => (m.status || (m.completed ? 'concluido' : 'agendado')) === 'agendado').length} serviço(s) agendado(s)`
+                    : 'Revisões preventivas e reparos pontuais'}
+                </div>
+              </div>
+            </div>
+
+            <span style={{ fontSize: '0.76rem', color: 'var(--primary)', fontWeight: 700 }}>
+              Abrir ➔
+            </span>
+          </div>
+
           <FlexCalculator />
           <ChartsView refuelings={processedRefuelings} />
           <RefuelList
@@ -307,17 +375,21 @@ export function App() {
 
       {/* Visão Manutenções */}
       {activeTab === 'manutencao' && (
-        <MaintenanceReminders
+        <MaintenanceView
           items={vehicleMaintenance}
           currentOdometer={activeVehicle?.currentOdometer || stats.lastOdometer}
           onToggleComplete={handleToggleMaintenance}
-          onAdd={handleAddMaintenance}
+          onSaveItem={handleSaveMaintenance}
+          onDeleteItem={handleDeleteMaintenance}
         />
       )}
 
       {/* Visão Configurações & Backup */}
       {activeTab === 'configuracoes' && (
-        <SettingsView onDataChanged={reloadAllData} />
+        <SettingsView
+          onDataChanged={reloadAllData}
+          onNavigate={(tab) => setActiveTab(tab)}
+        />
       )}
 
       {/* Modal Abastecimento (Novo / Editar) */}
@@ -325,6 +397,7 @@ export function App() {
         isOpen={isAddModalOpen}
         onClose={handleCloseModal}
         onSave={handleSaveRefueling}
+        onDelete={handleDeleteRefueling}
         vehicleId={activeVehicleId}
         lastOdometer={stats.lastOdometer}
         vehicleCurrentOdometer={activeVehicle?.currentOdometer}
@@ -369,16 +442,16 @@ export function App() {
           <span>Histórico</span>
         </button>
 
-        <button className="fab-button" onClick={() => setIsAddModalOpen(true)} title="Abastecer">
+        <button className="fab-button" onClick={handleOpenNewModal} title="Abastecer">
           <Plus size={28} />
         </button>
 
         <button
-          className={`nav-item ${activeTab === 'comparativo' ? 'active' : ''}`}
-          onClick={() => setActiveTab('comparativo')}
+          className={`nav-item ${activeTab === 'manutencao' ? 'active' : ''}`}
+          onClick={() => setActiveTab('manutencao')}
         >
-          <Scale size={20} />
-          <span>Comparar</span>
+          <Wrench size={20} />
+          <span>Oficina</span>
         </button>
 
         <button

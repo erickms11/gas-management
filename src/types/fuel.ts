@@ -38,17 +38,27 @@ export interface Refueling {
   runningAverageKmL?: number; // Média acumulada até este abastecimento
 }
 
+export type MaintenanceType = 'preventiva' | 'pontual';
+export type MaintenanceStatus = 'agendado' | 'concluido';
+
 export interface MaintenanceItem {
   id: string;
   vehicleId: string;
+  type: MaintenanceType; // 'preventiva' (agendamento/revisão) ou 'pontual' (imprevisto/reparo)
   title: string;
-  category: 'Óleo & Filtro' | 'Pneus' | 'Freios' | 'Revisão Geral' | 'IPVA/Seguro' | 'Outros';
-  lastServiceDate: string;
-  lastServiceOdometer: number;
+  category?: 'Óleo & Filtro' | 'Pneus' | 'Freios' | 'Câmbio' | 'Funilaria' | 'Revisão Geral' | 'Bateria' | 'Outros' | string;
+  date: string; // YYYY-MM-DD
+  location?: string; // Oficina, Posto, Borracharia, Concessionária, etc.
+  cost?: number; // R$
+  odometer?: number; // Km no momento ou planejado
+  status: MaintenanceStatus; // 'agendado' ou 'concluido'
+  notes?: string;
+  // Campos legados para compatibilidade com versões anteriores
+  lastServiceDate?: string;
+  lastServiceOdometer?: number;
   nextServiceDate?: string;
   nextServiceOdometer?: number;
-  completed: boolean;
-  notes?: string;
+  completed?: boolean;
 }
 
 export interface ConsumptionStats {

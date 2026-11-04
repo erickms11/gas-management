@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { Fuel, Calendar, MapPin, Trash2, Gauge, Filter, ExternalLink, Pencil } from 'lucide-react';
+import { Fuel, Calendar, MapPin, Gauge, Filter, ExternalLink } from 'lucide-react';
 import { Refueling } from '../types/fuel';
 import { formatDisplayDate, getDateTimestamp } from '../utils/calculations';
 
 interface RefuelListProps {
   refuelings: Refueling[];
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
   onEdit: (item: Refueling) => void;
 }
 
-export const RefuelList: React.FC<RefuelListProps> = ({ refuelings, onDelete, onEdit }) => {
+export const RefuelList: React.FC<RefuelListProps> = ({ refuelings, onEdit }) => {
   const [filterFuel, setFilterFuel] = useState<string>('todos');
 
   const filtered = filterFuel === 'todos'
@@ -55,20 +55,35 @@ export const RefuelList: React.FC<RefuelListProps> = ({ refuelings, onDelete, on
         </div>
       ) : (
         sorted.map((item) => (
-          <div key={item.id} className="refuel-item">
+          <div
+            key={item.id}
+            className="refuel-item clickable-card"
+            onClick={() => onEdit(item)}
+            title="Toque para editar ou excluir este abastecimento"
+          >
             <div className="refuel-main">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`badge ${getBadgeStyle(item.fuelType)}`}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                <span className={`badge ${getBadgeStyle(item.fuelType)}`} style={{ flexShrink: 0 }}>
                   {item.fuelType}
                 </span>
-                <span className="refuel-date">
+                <span className="refuel-date" style={{ whiteSpace: 'nowrap' }}>
                   <Calendar size={12} style={{ display: 'inline', marginRight: '4px' }} />
                   {formatDisplayDate(item.date)}
                 </span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
-                <div className="refuel-station">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, marginTop: '4px' }}>
+                <div
+                  className="refuel-station"
+                  style={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    minWidth: 0,
+                    flex: 1,
+                  }}
+                  title={item.gasStation || 'Posto não informado'}
+                >
                   {item.gasStation || 'Posto não informado'}
                 </div>
 
@@ -77,41 +92,62 @@ export const RefuelList: React.FC<RefuelListProps> = ({ refuelings, onDelete, on
                     href={`https://www.google.com/maps/search/?api=1&query=${item.location.latitude},${item.location.longitude}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '4px',
-                      fontSize: '0.73rem',
+                      fontSize: '0.72rem',
                       color: 'var(--primary)',
                       background: 'rgba(59, 130, 246, 0.12)',
                       border: '1px solid rgba(59, 130, 246, 0.25)',
-                      padding: '2px 8px',
+                      padding: '2px 7px',
                       borderRadius: '8px',
                       textDecoration: 'none',
                       fontWeight: 600,
+                      flexShrink: 0,
                     }}
                     title={item.location.address || `Lat: ${item.location.latitude}, Lng: ${item.location.longitude}`}
                   >
-                    <MapPin size={12} color="var(--primary)" />
-                    <span>{item.location.address ? item.location.address.split(',')[0] : 'Ver no Mapa'}</span>
-                    <ExternalLink size={10} />
+                    <MapPin size={11} color="var(--primary)" />
+                    <span>{item.location.address ? item.location.address.split(',')[0] : 'Mapa'}</span>
+                    <ExternalLink size={9} />
                   </a>
                 )}
               </div>
 
-              <div className="refuel-details">
-                {item.liters.toFixed(2)} L × R$ {item.pricePerLiter.toFixed(2)} | Odômetro: {item.odometer.toLocaleString('pt-BR')} Km
+              <div
+                className="refuel-details"
+                style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  minWidth: 0,
+                  marginTop: '2px',
+                }}
+              >
+                {item.liters.toFixed(2)} L × R$ {item.pricePerLiter.toFixed(2)} • {item.odometer.toLocaleString('pt-BR')} Km
               </div>
 
               {item.kmDriven ? (
-                <div style={{ fontSize: '0.74rem', color: 'var(--text-dim)', marginTop: '3px' }}>
-                  ⚡ Rodou {item.kmDriven.toLocaleString('pt-BR')} Km desde o anterior
+                <div
+                  style={{
+                    fontSize: '0.72rem',
+                    color: 'var(--text-dim)',
+                    marginTop: '2px',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    minWidth: 0,
+                  }}
+                >
+                  ⚡ Rodou {item.kmDriven.toLocaleString('pt-BR')} Km neste tanque
                 </div>
               ) : null}
             </div>
 
-            <div className="refuel-cost">
-              <div className="refuel-price-total">
+            <div className="refuel-cost" style={{ flexShrink: 0, textAlign: 'right', minWidth: '95px' }}>
+              <div className="refuel-price-total" style={{ whiteSpace: 'nowrap' }}>
                 R$ {item.totalCost.toFixed(2)}
               </div>
 
@@ -124,63 +160,22 @@ export const RefuelList: React.FC<RefuelListProps> = ({ refuelings, onDelete, on
                     background: 'rgba(16, 185, 129, 0.14)',
                     border: '1px solid rgba(16, 185, 129, 0.35)',
                     borderRadius: '8px',
-                    padding: '2px 6px',
+                    padding: '2px 7px',
                     marginTop: '4px',
+                    whiteSpace: 'nowrap',
                   }}
-                  title="Consumo de combustível alcançado pelo veículo neste tanque"
+                  title={item.isFullTank ? 'Consumo médio calculado com tanque cheio' : 'Consumo médio do trecho'}
                 >
                   <Gauge size={12} color="var(--accent-green)" />
-                  <span style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--accent-green)' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--accent-green)', whiteSpace: 'nowrap' }}>
                     {item.consumptionKmL.toFixed(2)} Km/L
-                  </span>
-                  <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)' }}>
-                    {item.isFullTank ? 'consumo' : '(parcial)'}
                   </span>
                 </div>
               ) : (
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                  1º abastecimento (base)
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)', marginTop: '4px', whiteSpace: 'nowrap' }}>
+                  1º abastecimento
                 </div>
               )}
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
-                <button
-                  onClick={() => onEdit(item)}
-                  style={{
-                    background: 'rgba(56, 189, 248, 0.12)',
-                    border: '1px solid rgba(56, 189, 248, 0.3)',
-                    color: 'var(--primary)',
-                    cursor: 'pointer',
-                    padding: '3px 8px',
-                    borderRadius: '6px',
-                    fontSize: '0.74rem',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                  }}
-                  title="Editar abastecimento"
-                >
-                  <Pencil size={12} />
-                  <span>Editar</span>
-                </button>
-
-                <button
-                  onClick={() => onDelete(item.id)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--text-dim)',
-                    cursor: 'pointer',
-                    padding: '2px',
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                  title="Excluir"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
             </div>
           </div>
         ))
