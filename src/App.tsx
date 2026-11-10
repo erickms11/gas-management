@@ -9,6 +9,7 @@ import { RefuelFormModal } from './components/RefuelFormModal';
 import { DataExportModal } from './components/DataExportModal';
 import { VehicleModal } from './components/VehicleModal';
 import { OthersView } from './components/OthersView';
+import { PullToRefresh } from './components/PullToRefresh';
 import {
   loadVehicles,
   saveVehicles,
@@ -252,6 +253,9 @@ export function App() {
 
   return (
     <div className="liquid-app-wrapper">
+      {/* Componente de Puxar para Atualizar (Pull-to-Refresh) para PWA Mobile */}
+      <PullToRefresh onRefresh={reloadAllData} />
+
       {/* Ambient Liquid Glow Orbs - Luzes dinâmicas de fundo para refração do vidro líquido */}
       <div className="ambient-blob blob-cyan" aria-hidden="true" />
       <div className="ambient-blob blob-purple" aria-hidden="true" />
