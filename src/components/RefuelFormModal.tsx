@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Fuel, Check, MapPin, Navigation, RefreshCw, Trash2, Edit3, DollarSign, Droplets } from 'lucide-react';
-import { FuelType, Refueling, RefuelingLocation } from '../types/fuel';
+import { X, Fuel, Check, MapPin, Navigation, RefreshCw, Trash2, Edit3, DollarSign, Droplets, Gauge, Plus, Minus, Zap } from 'lucide-react';
+import { FuelType, Refueling, RefuelingLocation, Vehicle } from '../types/fuel';
 
 interface RefuelFormModalProps {
   isOpen: boolean;
@@ -11,6 +11,7 @@ interface RefuelFormModalProps {
   lastOdometer: number;
   vehicleCurrentOdometer?: number;
   refuelingToEdit?: Refueling | null;
+  vehicle?: Vehicle;
 }
 
 export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
@@ -22,8 +23,14 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
   lastOdometer,
   vehicleCurrentOdometer,
   refuelingToEdit,
+  vehicle,
 }) => {
   if (!isOpen) return null;
+
+  // Capacidade e pontos do marcador do veículo (ex: Nissan Tiida: 53L e 14 pontos)
+  const tankCapacity = vehicle?.tankCapacityLiters || 53;
+  const gaugePoints = vehicle?.fuelGaugePoints || 14;
+  const litersPerPoint = tankCapacity / gaugePoints;
 
   // Modo de entrada: 'liters' (digitou litros) ou 'value' (digitou valor em R$)
   const [inputMode, setInputMode] = useState<'liters' | 'value'>('liters');
@@ -36,6 +43,8 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
   const [pricePerLiter, setPricePerLiter] = useState<string>('5.79');
   const [fuelType, setFuelType] = useState<FuelType>('Gasolina Comum');
   const [isFullTank, setIsFullTank] = useState<boolean>(false);
+  const [tankLevelPointsBefore, setTankLevelPointsBefore] = useState<number>(3);
+  const [tankLevelPointsAfter, setTankLevelPointsAfter] = useState<number | undefined>(undefined);
   const [gasStation, setGasStation] = useState<string>('Posto Shell');
   const [notes, setNotes] = useState<string>('');
 
@@ -52,6 +61,8 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
       setPricePerLiter(refuelingToEdit.pricePerLiter.toString());
       setFuelType(refuelingToEdit.fuelType);
       setIsFullTank(refuelingToEdit.isFullTank ?? false);
+      setTankLevelPointsBefore(refuelingToEdit.tankLevelPointsBefore ?? 3);
+      setTankLevelPointsAfter(refuelingToEdit.tankLevelPointsAfter);
       setGasStation(refuelingToEdit.gasStation || '');
       setNotes(refuelingToEdit.notes || '');
       setLocation(refuelingToEdit.location || null);
@@ -65,6 +76,8 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
       setPricePerLiter('5.79');
       setFuelType('Gasolina Comum');
       setIsFullTank(false);
+      setTankLevelPointsBefore(3);
+      setTankLevelPointsAfter(undefined);
       setGasStation('Posto Shell');
       setNotes('');
       setLocation(null);
@@ -82,6 +95,29 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
   const computedTotal: number = inputMode === 'liters'
     ? numLiters * numPrice
     : (parseFloat(totalValue) || 0);
+
+  // Estimativas em Litros com base nos pontos do marcador
+  const litersRemainingBefore = Math.round(tankLevelPointsBefore * litersPerPoint * 10) / 10;
+  const litersNeededToFill = Math.max(0, Math.round((tankCapacity - litersRemainingBefore) * 10) / 10);
+
+  // Previsão de nível pós-abastecimento
+  const predictedLitersAfter = Math.min(tankCapacity, Math.round((litersRemainingBefore + numLiters) * 10) / 10);
+  const predictedPointsAfter = Math.min(gaugePoints, Math.round((predictedLitersAfter / tankCapacity) * gaugePoints));
+
+  const handleFillUpClick = () => {
+    setInputMode('liters');
+    setLiters(litersNeededToFill.toFixed(1));
+    setIsFullTank(true);
+    setTankLevelPointsAfter(gaugePoints);
+  };
+
+  const handleLevelChange = (newLevel: number) => {
+    const clamped = Math.max(0, Math.min(gaugePoints, newLevel));
+    setTankLevelPointsBefore(clamped);
+    if (isFullTank) {
+      setTankLevelPointsAfter(gaugePoints);
+    }
+  };
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
@@ -163,6 +199,10 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
         totalCost: computedTotal,
         fuelType,
         isFullTank,
+        tankLevelPointsBefore,
+        tankLevelPointsAfter: isFullTank ? gaugePoints : (tankLevelPointsAfter ?? predictedPointsAfter),
+        estimatedLitersBefore: litersRemainingBefore,
+        estimatedLitersAfter: isFullTank ? tankCapacity : predictedLitersAfter,
         gasStation: gasStation.trim() || undefined,
         location: location || undefined,
         notes: notes.trim() || undefined,
@@ -221,6 +261,216 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
                 </span>
               )}
             </div>
+          </div>
+
+          {/* Mostrador de Combustível - Odômetro / Painel (Nissan Tiida 14 pontos) */}
+          <div
+            className="tiida-gauge-card"
+            style={{
+              background: 'linear-gradient(145deg, rgba(14, 20, 36, 0.85) 0%, rgba(20, 29, 52, 0.65) 100%)',
+              border: '1px solid rgba(56, 189, 248, 0.25)',
+              borderRadius: '16px',
+              padding: '14px',
+              marginBottom: '16px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Gauge size={18} color="var(--primary)" />
+                <span style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                  Nível no Painel (Mostrador do Odômetro)
+                </span>
+              </div>
+              <span
+                style={{
+                  fontSize: '0.74rem',
+                  fontWeight: 800,
+                  color: 'var(--primary)',
+                  background: 'rgba(56, 189, 248, 0.15)',
+                  padding: '2px 8px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(56, 189, 248, 0.3)',
+                }}
+              >
+                {tankLevelPointsBefore} / {gaugePoints} pontos
+              </span>
+            </div>
+
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+              Marque quantos pontos estavam acesos no painel ao chegar no posto:
+            </div>
+
+            {/* Marcador Interativo de 14 Barras estilo Cluster Nissan Tiida */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+              <button
+                type="button"
+                onClick={() => handleLevelChange(tankLevelPointsBefore - 1)}
+                disabled={tankLevelPointsBefore <= 0}
+                style={{
+                  width: '32px',
+                  height: '36px',
+                  borderRadius: '8px',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  color: 'var(--text-main)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: tankLevelPointsBefore <= 0 ? 'not-allowed' : 'pointer',
+                  opacity: tankLevelPointsBefore <= 0 ? 0.3 : 1,
+                  flexShrink: 0,
+                }}
+                title="Diminuir 1 ponto"
+              >
+                <Minus size={16} />
+              </button>
+
+              <div
+                style={{
+                  flex: 1,
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(${gaugePoints}, 1fr)`,
+                  gap: '4px',
+                  background: 'rgba(0, 0, 0, 0.4)',
+                  padding: '6px',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                }}
+              >
+                {Array.from({ length: gaugePoints }, (_, i) => i + 1).map((pointNum) => {
+                  const isActive = pointNum <= tankLevelPointsBefore;
+                  const isReserve = pointNum <= 2;
+                  const isHigh = pointNum >= 11;
+
+                  let activeBg = 'linear-gradient(180deg, #38bdf8 0%, #0284c7 100%)';
+                  let activeBorder = 'rgba(56, 189, 248, 0.9)';
+                  let activeGlow = '0 0 8px rgba(56, 189, 248, 0.6)';
+
+                  if (isReserve) {
+                    activeBg = 'linear-gradient(180deg, #f87171 0%, #dc2626 100%)';
+                    activeBorder = 'rgba(248, 113, 113, 0.9)';
+                    activeGlow = '0 0 8px rgba(239, 68, 68, 0.6)';
+                  } else if (isHigh) {
+                    activeBg = 'linear-gradient(180deg, #34d399 0%, #059669 100%)';
+                    activeBorder = 'rgba(52, 211, 153, 0.9)';
+                    activeGlow = '0 0 8px rgba(16, 185, 129, 0.6)';
+                  }
+
+                  return (
+                    <button
+                      key={pointNum}
+                      type="button"
+                      onClick={() => handleLevelChange(pointNum)}
+                      title={`Ponto ${pointNum} de ${gaugePoints} (~${(pointNum * litersPerPoint).toFixed(1)} L)`}
+                      style={{
+                        height: '32px',
+                        borderRadius: '4px',
+                        background: isActive ? activeBg : 'rgba(255, 255, 255, 0.06)',
+                        border: isActive ? `1px solid ${activeBorder}` : '1px solid rgba(255, 255, 255, 0.08)',
+                        boxShadow: isActive ? activeGlow : 'none',
+                        cursor: 'pointer',
+                        padding: 0,
+                        transition: 'all 0.15s ease',
+                      }}
+                    />
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleLevelChange(tankLevelPointsBefore + 1)}
+                disabled={tankLevelPointsBefore >= gaugePoints}
+                style={{
+                  width: '32px',
+                  height: '36px',
+                  borderRadius: '8px',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  color: 'var(--text-main)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: tankLevelPointsBefore >= gaugePoints ? 'not-allowed' : 'pointer',
+                  opacity: tankLevelPointsBefore >= gaugePoints ? 0.3 : 1,
+                  flexShrink: 0,
+                }}
+                title="Aumentar 1 ponto"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
+
+            {/* Cards de Litragem & Atalho Rápido para Encher */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '8px',
+                marginBottom: '10px',
+              }}
+            >
+              <div
+                style={{
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '10px',
+                  padding: '8px 10px',
+                  textAlign: 'center',
+                }}
+              >
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>Restava no Tanque</div>
+                <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                  ≈ {litersRemainingBefore} L
+                </div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                  {litersPerPoint.toFixed(2)} L por ponto
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: 'rgba(56, 189, 248, 0.06)',
+                  border: '1px solid rgba(56, 189, 248, 0.2)',
+                  borderRadius: '10px',
+                  padding: '8px 10px',
+                  textAlign: 'center',
+                }}
+              >
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>Espaço Livre para Encher</div>
+                <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--primary)' }}>
+                  ≈ {litersNeededToFill} L
+                </div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                  Tanque total de {tankCapacity} L
+                </div>
+              </div>
+            </div>
+
+            {litersNeededToFill > 0 && (
+              <button
+                type="button"
+                onClick={handleFillUpClick}
+                style={{
+                  width: '100%',
+                  padding: '7px 10px',
+                  borderRadius: '10px',
+                  background: 'rgba(16, 185, 129, 0.12)',
+                  border: '1px solid rgba(16, 185, 129, 0.35)',
+                  color: 'var(--accent-green)',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Zap size={14} /> Quero Completar até o Tanque Cheio (~{litersNeededToFill} L)
+              </button>
+            )}
           </div>
 
           <div className="form-row">
@@ -408,17 +658,38 @@ export const RefuelFormModal: React.FC<RefuelFormModalProps> = ({
             )}
           </div>
 
-          <div className="form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '10px' }}>
-            <input
-              type="checkbox"
-              id="fullTank"
-              checked={isFullTank}
-              onChange={(e) => setIsFullTank(e.target.checked)}
-              style={{ width: '18px', height: '18px', accentColor: 'var(--primary)' }}
-            />
-            <label htmlFor="fullTank" className="form-label" style={{ margin: 0, cursor: 'pointer' }}>
-              Tanque Cheio (Opcional - o app calcula o Km/L mesmo se for parcial)
-            </label>
+          <div className="form-group" style={{ flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <input
+                type="checkbox"
+                id="fullTank"
+                checked={isFullTank}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setIsFullTank(checked);
+                  if (checked) {
+                    setTankLevelPointsAfter(gaugePoints);
+                  }
+                }}
+                style={{ width: '18px', height: '18px', accentColor: 'var(--primary)' }}
+              />
+              <label htmlFor="fullTank" className="form-label" style={{ margin: 0, cursor: 'pointer' }}>
+                Tanque Cheio ({gaugePoints}/{gaugePoints} pontos no mostrador)
+              </label>
+            </div>
+
+            <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginLeft: '28px' }}>
+              {isFullTank ? (
+                <span style={{ color: 'var(--accent-green)', fontWeight: 600 }}>
+                  ✓ Tanque completado até a boca ({tankCapacity} L • {gaugePoints} pontos). Média Km/L com máxima precisão!
+                </span>
+              ) : (
+                <span>
+                  Abastecimento parcial: com {numLiters > 0 ? `${numLiters.toFixed(1)} L` : 'o combustível colocado'}, o mostrador subirá para aprox.{' '}
+                  <strong style={{ color: 'var(--primary)' }}>{predictedPointsAfter} de {gaugePoints} pontos</strong> (~{predictedLitersAfter} L).
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="form-group">

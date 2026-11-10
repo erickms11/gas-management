@@ -28,7 +28,8 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({
   const [licensePlate, setLicensePlate] = useState('');
   const [initialOdometer, setInitialOdometer] = useState('30000');
   const [currentOdometer, setCurrentOdometer] = useState('35000');
-  const [tankCapacityLiters, setTankCapacityLiters] = useState('45');
+  const [tankCapacityLiters, setTankCapacityLiters] = useState('53');
+  const [fuelGaugePoints, setFuelGaugePoints] = useState('14');
 
   useEffect(() => {
     if (vehicleToEdit) {
@@ -40,18 +41,28 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({
       const initOdo = vehicleToEdit.initialOdometer !== undefined ? vehicleToEdit.initialOdometer : vehicleToEdit.currentOdometer;
       setInitialOdometer(initOdo.toString());
       setCurrentOdometer(vehicleToEdit.currentOdometer.toString());
-      setTankCapacityLiters(vehicleToEdit.tankCapacityLiters ? vehicleToEdit.tankCapacityLiters.toString() : '45');
+      setTankCapacityLiters(vehicleToEdit.tankCapacityLiters ? vehicleToEdit.tankCapacityLiters.toString() : '53');
+      setFuelGaugePoints(vehicleToEdit.fuelGaugePoints ? vehicleToEdit.fuelGaugePoints.toString() : '14');
     } else {
-      setName('');
-      setBrand('');
-      setModel('');
-      setYear(new Date().getFullYear().toString());
+      setName('Nissan Tiida');
+      setBrand('Nissan');
+      setModel('Tiida 1.8 16V');
+      setYear('2013');
       setLicensePlate('');
       setInitialOdometer('0');
       setCurrentOdometer('0');
-      setTankCapacityLiters('45');
+      setTankCapacityLiters('53');
+      setFuelGaugePoints('14');
     }
   }, [isOpen, vehicleToEdit]);
+
+  const handleApplyTiidaPreset = () => {
+    setName('Nissan Tiida');
+    setBrand('Nissan');
+    setModel('Tiida 1.8 16V Flex');
+    setTankCapacityLiters('53');
+    setFuelGaugePoints('14');
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +88,8 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({
       licensePlate: licensePlate.trim() || undefined,
       initialOdometer: initOdo,
       currentOdometer: currOdo,
-      tankCapacityLiters: parseFloat(tankCapacityLiters) || undefined,
+      tankCapacityLiters: parseFloat(tankCapacityLiters) || 53,
+      fuelGaugePoints: parseInt(fuelGaugePoints, 10) || 14,
     };
 
     onSave(vehicleData);
@@ -195,17 +207,84 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({
             </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Capacidade do Tanque (Litros)</label>
-            <input
-              type="number"
-              step="0.5"
-              className="form-input"
-              placeholder="Ex: 45"
-              value={tankCapacityLiters}
-              onChange={(e) => setTankCapacityLiters(e.target.value)}
-            />
+          {/* Botão de Atalho Rápido para Nissan Tiida */}
+          <div style={{ marginBottom: '14px' }}>
+            <button
+              type="button"
+              onClick={handleApplyTiidaPreset}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                borderRadius: '10px',
+                background: 'rgba(56, 189, 248, 0.12)',
+                border: '1px dashed var(--primary)',
+                color: 'var(--primary)',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+              }}
+            >
+              🚗 Configurar como Nissan Tiida (53L • 14 pontos no mostrador)
+            </button>
           </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Capacidade do Tanque (Litros)</label>
+              <input
+                type="number"
+                step="0.5"
+                className="form-input"
+                placeholder="Ex: 53"
+                value={tankCapacityLiters}
+                onChange={(e) => setTankCapacityLiters(e.target.value)}
+                required
+              />
+              <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>
+                Nissan Tiida: 53 Litros
+              </span>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Pontos no Mostrador</label>
+              <input
+                type="number"
+                min="1"
+                max="30"
+                className="form-input"
+                placeholder="Ex: 14"
+                value={fuelGaugePoints}
+                onChange={(e) => setFuelGaugePoints(e.target.value)}
+                required
+              />
+              <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>
+                Nissan Tiida: 14 pontos no odômetro
+              </span>
+            </div>
+          </div>
+
+          {parseFloat(tankCapacityLiters) > 0 && parseInt(fuelGaugePoints, 10) > 0 && (
+            <div
+              style={{
+                background: 'rgba(56, 189, 248, 0.08)',
+                border: '1px solid rgba(56, 189, 248, 0.2)',
+                borderRadius: '10px',
+                padding: '10px 12px',
+                marginBottom: '14px',
+                fontSize: '0.78rem',
+                color: 'var(--text-muted)',
+              }}
+            >
+              📊 <strong>Calibração do Mostrador:</strong> Cada ponto digital no seu painel equivale a aproximadamente{' '}
+              <strong style={{ color: 'var(--primary)' }}>
+                {(parseFloat(tankCapacityLiters) / parseInt(fuelGaugePoints, 10)).toFixed(2)} Litros
+              </strong>.
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
             {vehicleToEdit && canDelete && onDelete && (

@@ -2,18 +2,41 @@ import { Refueling, ConsumptionStats, Vehicle } from '../types/fuel';
 
 /**
  * Recalcula a quilometragem percorrida e o consumo Km/L para uma lista de abastecimentos ordenados por odômetro asc.
+ * Considera o nível do marcador de combustível (pontos no odômetro/painel) e a capacidade do tanque para cálculo exato,
+ * inclusive em abastecimentos parciais!
  */
-export function processRefuelings(refuelings: Refueling[]): Refueling[] {
+export function processRefuelings(refuelings: Refueling[], vehicle?: Vehicle): Refueling[] {
   // Ordenar por odômetro crescente para cálculos de sequência
   const sorted = [...refuelings].sort((a, b) => a.odometer - b.odometer);
   const firstOdometer = sorted.length > 0 ? sorted[0].odometer : 0;
 
+  const tankCapacity = vehicle?.tankCapacityLiters || 53;
+  const gaugePoints = vehicle?.fuelGaugePoints || 14;
+  const litersPerPoint = tankCapacity / gaugePoints;
+
   let cumulativeLiters = 0;
 
   return sorted.map((item, index) => {
+    // Calcular estimativas em litros a partir dos pontos do marcador
+    const estimatedLitersBefore = item.tankLevelPointsBefore !== undefined
+      ? Math.round(item.tankLevelPointsBefore * litersPerPoint * 10) / 10
+      : item.estimatedLitersBefore;
+
+    let estimatedLitersAfter = item.tankLevelPointsAfter !== undefined
+      ? Math.round(item.tankLevelPointsAfter * litersPerPoint * 10) / 10
+      : item.estimatedLitersAfter;
+
+    if (item.isFullTank) {
+      estimatedLitersAfter = tankCapacity;
+    } else if (estimatedLitersAfter === undefined && estimatedLitersBefore !== undefined) {
+      estimatedLitersAfter = Math.min(tankCapacity, Math.round((estimatedLitersBefore + item.liters) * 10) / 10);
+    }
+
     if (index === 0) {
       return {
         ...item,
+        estimatedLitersBefore,
+        estimatedLitersAfter,
         kmDriven: undefined,
         consumedLiters: undefined,
         consumptionKmL: undefined,
@@ -25,14 +48,36 @@ export function processRefuelings(refuelings: Refueling[]): Refueling[] {
     const prev = sorted[index - 1];
     const kmDriven = item.odometer - prev.odometer;
 
-    // Regra de consumo de combustível:
-    // Se ambos os abastecimentos foram com tanque cheio, os litros repostos em 'item.liters'
-    // correspondem ao que foi gasto no trecho.
-    // CASO CONTRÁRIO (abastecimento parcial / método reserva a reserva):
-    // O combustível que o motor realmente queimou para andar esses 'kmDriven' Km foi o combustível
-    // colocado no início daquele trecho ('prev.liters').
+    // Determinar litros no tanque ao final do abastecimento anterior
+    let prevEndLiters: number | undefined = undefined;
+    if (prev.isFullTank) {
+      prevEndLiters = tankCapacity;
+    } else if (prev.tankLevelPointsAfter !== undefined) {
+      prevEndLiters = prev.tankLevelPointsAfter * litersPerPoint;
+    } else if (prev.tankLevelPointsBefore !== undefined) {
+      prevEndLiters = Math.min(tankCapacity, (prev.tankLevelPointsBefore * litersPerPoint) + prev.liters);
+    }
+
+    // Determinar litros no tanque no início do abastecimento atual (ao chegar para abastecer)
+    let currentStartLiters: number | undefined = undefined;
+    if (item.tankLevelPointsBefore !== undefined) {
+      currentStartLiters = item.tankLevelPointsBefore * litersPerPoint;
+    }
+
+    let consumedLiters: number;
     const isBothFullTank = Boolean(prev.isFullTank && item.isFullTank);
-    const consumedLiters = isBothFullTank ? item.liters : prev.liters;
+
+    if (isBothFullTank) {
+      // Regra clássica tanque cheio: o que foi colocado repõe exatamente o gasto do trecho
+      consumedLiters = item.liters;
+    } else if (prevEndLiters !== undefined && currentStartLiters !== undefined && prevEndLiters > currentStartLiters) {
+      // Método dos pontos do mostrador:
+      // O combustível queimado é a diferença exata entre o combustível anterior e o nível de chegada
+      consumedLiters = Math.round((prevEndLiters - currentStartLiters) * 100) / 100;
+    } else {
+      // Abastecimento parcial tradicional (combustível colocado no início do trecho)
+      consumedLiters = prev.liters;
+    }
 
     // Litros acumulados consumidos até este ponto para a média acumulada
     cumulativeLiters += consumedLiters;
@@ -44,7 +89,7 @@ export function processRefuelings(refuelings: Refueling[]): Refueling[] {
 
     if (kmDriven > 0 && consumedLiters > 0) {
       consumptionKmL = kmDriven / consumedLiters;
-      const trechoCost = isBothFullTank ? item.totalCost : prev.totalCost;
+      const trechoCost = isBothFullTank ? item.totalCost : (item.pricePerLiter * consumedLiters);
       costPerKm = trechoCost / kmDriven;
     }
 
@@ -54,6 +99,8 @@ export function processRefuelings(refuelings: Refueling[]): Refueling[] {
 
     return {
       ...item,
+      estimatedLitersBefore,
+      estimatedLitersAfter,
       kmDriven,
       consumedLiters,
       consumptionKmL,
@@ -113,8 +160,19 @@ export function calculateStats(processedRefuelings: Refueling[], vehicle?: Vehic
     ? sorted.slice(1).reduce((sum, r) => sum + r.liters, 0)
     : (sorted.length > 1 ? sorted.slice(0, -1).reduce((sum, r) => sum + r.liters, 0) : totalLiters);
 
+  // Média de consumo ponderada pelos trechos reais calculados
+  const legsWithConsumption = processedRefuelings.filter(
+    (r) => r.kmDriven !== undefined && r.kmDriven > 0 && r.consumedLiters !== undefined && r.consumedLiters > 0
+  );
+
   let averageKmL = 0;
-  if (refuelKm > 0 && consumedLitersTotal > 0) {
+  if (legsWithConsumption.length > 0) {
+    const totalKmLegs = legsWithConsumption.reduce((sum, r) => sum + (r.kmDriven || 0), 0);
+    const totalLitersLegs = legsWithConsumption.reduce((sum, r) => sum + (r.consumedLiters || 0), 0);
+    if (totalKmLegs > 0 && totalLitersLegs > 0) {
+      averageKmL = totalKmLegs / totalLitersLegs;
+    }
+  } else if (refuelKm > 0 && consumedLitersTotal > 0) {
     averageKmL = refuelKm / consumedLitersTotal;
   } else if (totalKmDriven > 0 && totalLiters > 0) {
     averageKmL = totalKmDriven / totalLiters;

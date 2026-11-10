@@ -9,7 +9,8 @@ export interface Vehicle {
   licensePlate?: string;
   initialOdometer?: number; // Odômetro inicial ao começar o controle (em KM)
   currentOdometer: number; // Odômetro atual do veículo (em KM)
-  tankCapacityLiters?: number;
+  tankCapacityLiters?: number; // Capacidade do tanque em Litros (ex: 53L no Nissan Tiida)
+  fuelGaugePoints?: number; // Divisões/pontos do mostrador digital no odômetro (ex: 14 no Nissan Tiida)
   photoUrl?: string; // URL ou Base64 da imagem/miniatura do veículo
 }
 
@@ -29,6 +30,10 @@ export interface Refueling {
   totalCost: number; // R$ total
   fuelType: FuelType;
   isFullTank: boolean; // Tanque cheio para cálculo preciso de consumo
+  tankLevelPointsBefore?: number; // Pontos no mostrador antes de abastecer (ex: 3 de 14)
+  tankLevelPointsAfter?: number; // Pontos no mostrador após abastecer (ex: 14 de 14)
+  estimatedLitersBefore?: number; // Litros estimados restantes antes do abastecimento
+  estimatedLitersAfter?: number; // Litros estimados no tanque após abastecimento
   gasStation?: string; // Nome do posto
   location?: RefuelingLocation; // Localização GPS / Posto
   notes?: string;

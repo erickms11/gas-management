@@ -21,7 +21,7 @@ import {
 } from './utils/storage';
 import { processRefuelings, calculateStats } from './utils/calculations';
 import { Vehicle, Refueling, MaintenanceItem } from './types/fuel';
-import { LayoutDashboard, History, Flame, Wrench, Plus, Scale, Settings, MoreHorizontal } from 'lucide-react';
+import { LayoutDashboard, History, Flame, Wrench, Plus, Scale, Settings, MoreHorizontal, Gauge } from 'lucide-react';
 
 export function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -83,8 +83,34 @@ export function App() {
 
   // Filtrar abastecimentos do veículo ativo
   const vehicleRefuelings = refuelings.filter((r) => r.vehicleId === activeVehicleId);
-  const processedRefuelings = processRefuelings(vehicleRefuelings);
+  const processedRefuelings = processRefuelings(vehicleRefuelings, activeVehicle);
   const stats = calculateStats(processedRefuelings, activeVehicle);
+
+  // Cálculos do Mostrador de Combustível em Tempo Real (Nissan Tiida 14 pontos)
+  const tankCapacity = activeVehicle?.tankCapacityLiters || 53;
+  const gaugePoints = activeVehicle?.fuelGaugePoints || 14;
+  const litersPerPoint = tankCapacity / gaugePoints;
+
+  const lastRefuel = processedRefuelings.length > 0 ? processedRefuelings[processedRefuelings.length - 1] : null;
+  let currentEstimatedLiters = tankCapacity;
+  let currentEstimatedPoints = gaugePoints;
+  let estimatedRangeKm: number | undefined = undefined;
+
+  if (lastRefuel) {
+    const endLiters = lastRefuel.estimatedLitersAfter !== undefined
+      ? lastRefuel.estimatedLitersAfter
+      : (lastRefuel.isFullTank ? tankCapacity : (lastRefuel.liters + (lastRefuel.tankLevelPointsBefore ? lastRefuel.tankLevelPointsBefore * litersPerPoint : 0)));
+
+    const distanceSinceLastRefuel = Math.max(0, (activeVehicle?.currentOdometer || lastRefuel.odometer) - lastRefuel.odometer);
+    const avgKmL = stats.averageKmL > 0 ? stats.averageKmL : (lastRefuel.consumptionKmL || 10.5);
+    const litersBurned = avgKmL > 0 ? (distanceSinceLastRefuel / avgKmL) : 0;
+
+    currentEstimatedLiters = Math.max(0, Math.min(tankCapacity, Math.round((endLiters - litersBurned) * 10) / 10));
+    currentEstimatedPoints = Math.max(0, Math.min(gaugePoints, Math.round((currentEstimatedLiters / tankCapacity) * gaugePoints)));
+    if (avgKmL > 0) {
+      estimatedRangeKm = Math.round(currentEstimatedLiters * avgKmL);
+    }
+  }
 
   const handleSelectVehicle = (id: string) => {
     setActiveVehicleId(id);
@@ -292,6 +318,98 @@ export function App() {
             currentOdometer={activeVehicle?.currentOdometer || stats.lastOdometer}
           />
 
+          {/* Card de Nível do Tanque no Painel (Estilo Marcador Nissan Tiida) */}
+          <div
+            className="glass-card"
+            style={{
+              padding: '14px 16px',
+              marginTop: '14px',
+              background: 'linear-gradient(135deg, rgba(14, 20, 36, 0.75) 0%, rgba(20, 30, 55, 0.6) 100%)',
+              border: '1px solid rgba(56, 189, 248, 0.25)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Gauge size={18} color="var(--primary)" />
+                <span style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                  Mostrador de Combustível (Painel)
+                </span>
+              </div>
+              <span
+                style={{
+                  fontSize: '0.74rem',
+                  fontWeight: 800,
+                  color: 'var(--primary)',
+                  background: 'rgba(56, 189, 248, 0.15)',
+                  padding: '2px 8px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(56, 189, 248, 0.3)',
+                }}
+              >
+                {currentEstimatedPoints} / {gaugePoints} pontos
+              </span>
+            </div>
+
+            {/* Display de Barras no Cluster */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${gaugePoints}, 1fr)`,
+                gap: '4px',
+                background: 'rgba(0, 0, 0, 0.4)',
+                padding: '6px',
+                borderRadius: '10px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                marginBottom: '10px',
+              }}
+            >
+              {Array.from({ length: gaugePoints }, (_, i) => i + 1).map((p) => {
+                const isActive = p <= currentEstimatedPoints;
+                const isReserve = p <= 2;
+                const isHigh = p >= 11;
+
+                let bg = 'linear-gradient(180deg, #38bdf8 0%, #0284c7 100%)';
+                let border = 'rgba(56, 189, 248, 0.9)';
+                let glow = '0 0 8px rgba(56, 189, 248, 0.6)';
+
+                if (isReserve) {
+                  bg = 'linear-gradient(180deg, #f87171 0%, #dc2626 100%)';
+                  border = 'rgba(248, 113, 113, 0.9)';
+                  glow = '0 0 8px rgba(239, 68, 68, 0.6)';
+                } else if (isHigh) {
+                  bg = 'linear-gradient(180deg, #34d399 0%, #059669 100%)';
+                  border = 'rgba(52, 211, 153, 0.9)';
+                  glow = '0 0 8px rgba(16, 185, 129, 0.6)';
+                }
+
+                return (
+                  <div
+                    key={p}
+                    style={{
+                      height: '14px',
+                      borderRadius: '3px',
+                      background: isActive ? bg : 'rgba(255, 255, 255, 0.06)',
+                      border: isActive ? `1px solid ${border}` : '1px solid rgba(255, 255, 255, 0.08)',
+                      boxShadow: isActive ? glow : 'none',
+                    }}
+                  />
+                );
+              })}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              <div>
+                Nível estimado: <strong style={{ color: 'var(--text-main)' }}>~{currentEstimatedLiters} L</strong> de {tankCapacity} L
+              </div>
+              {estimatedRangeKm !== undefined && (
+                <div>
+                  Autonomia estimada: <strong style={{ color: 'var(--accent-green)' }}>~{estimatedRangeKm} Km</strong>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Atalho Rápido para Oficina & Manutenções */}
           <div
             className="glass-card clickable-card"
@@ -392,6 +510,7 @@ export function App() {
         lastOdometer={stats.lastOdometer}
         vehicleCurrentOdometer={activeVehicle?.currentOdometer}
         refuelingToEdit={editingRefueling}
+        vehicle={activeVehicle}
       />
 
       {/* Modal Exportar / Backup JSON */}

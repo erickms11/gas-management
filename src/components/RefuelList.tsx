@@ -129,6 +129,47 @@ export const RefuelList: React.FC<RefuelListProps> = ({ refuelings, onEdit }) =>
                 {item.liters.toFixed(2)} L × R$ {item.pricePerLiter.toFixed(2)} • {item.odometer.toLocaleString('pt-BR')} Km
               </div>
 
+              {item.tankLevelPointsBefore !== undefined && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '0.72rem',
+                    color: 'var(--text-muted)',
+                    marginTop: '2px',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  <span
+                    style={{
+                      background: 'rgba(56, 189, 248, 0.12)',
+                      border: '1px solid rgba(56, 189, 248, 0.25)',
+                      padding: '1px 6px',
+                      borderRadius: '6px',
+                      color: 'var(--primary)',
+                      fontWeight: 700,
+                    }}
+                  >
+                    ⛽ Painel: {item.tankLevelPointsBefore}/14 pts
+                  </span>
+                  <span>➔</span>
+                  {item.isFullTank ? (
+                    <span style={{ color: 'var(--accent-green)', fontWeight: 700 }}>
+                      Tanque Cheio (14/14)
+                    </span>
+                  ) : item.tankLevelPointsAfter !== undefined ? (
+                    <span style={{ color: 'var(--text-main)', fontWeight: 600 }}>
+                      {item.tankLevelPointsAfter}/14 pts
+                    </span>
+                  ) : (
+                    <span>+{item.liters.toFixed(1)} L</span>
+                  )}
+                </div>
+              )}
+
               {item.kmDriven ? (
                 <div
                   style={{

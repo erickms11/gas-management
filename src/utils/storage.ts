@@ -10,14 +10,15 @@ const STORAGE_KEYS = {
 const DEFAULT_VEHICLES: Vehicle[] = [
   {
     id: 'v1',
-    name: 'Meu Carro Principal',
-    brand: 'Chevrolet',
-    model: 'Onix 1.0 Flex',
-    year: 2022,
+    name: 'Meu Nissan Tiida',
+    brand: 'Nissan',
+    model: 'Tiida 1.8 16V Flex',
+    year: 2013,
     licensePlate: 'ABC-1D23',
-    initialOdometer: 33400,
-    currentOdometer: 34850,
-    tankCapacityLiters: 44,
+    initialOdometer: 145000,
+    currentOdometer: 146420,
+    tankCapacityLiters: 53,
+    fuelGaugePoints: 14,
   },
   {
     id: 'v2',
@@ -29,6 +30,7 @@ const DEFAULT_VEHICLES: Vehicle[] = [
     initialOdometer: 50000,
     currentOdometer: 52100,
     tankCapacityLiters: 50,
+    fuelGaugePoints: 12,
   }
 ];
 
@@ -37,68 +39,76 @@ const DEFAULT_REFUELINGS: Refueling[] = [
     id: 'r1',
     vehicleId: 'v1',
     date: '2026-09-01',
-    odometer: 33400,
-    liters: 38.5,
+    odometer: 145000,
+    liters: 45.0,
     pricePerLiter: 5.79,
-    totalCost: 222.91,
+    totalCost: 260.55,
     fuelType: 'Gasolina Comum',
     isFullTank: true,
+    tankLevelPointsBefore: 2,
+    tankLevelPointsAfter: 14,
     gasStation: 'Posto Shell Central',
     location: {
       latitude: -23.55052,
       longitude: -46.633308,
       address: 'Av. Paulista - Bela Vista, São Paulo - SP'
     },
-    notes: 'Abastecimento inicial',
+    notes: 'Abastecimento inicial - Tanque Cheio',
   },
   {
     id: 'r2',
     vehicleId: 'v1',
     date: '2026-09-12',
-    odometer: 33880,
-    liters: 36.2,
-    pricePerLiter: 3.89,
-    totalCost: 140.81,
-    fuelType: 'Etanol',
+    odometer: 145450,
+    liters: 39.5,
+    pricePerLiter: 5.85,
+    totalCost: 231.08,
+    fuelType: 'Gasolina Aditivada',
     isFullTank: true,
+    tankLevelPointsBefore: 3,
+    tankLevelPointsAfter: 14,
     gasStation: 'Posto Ipiranga Express',
     location: {
       latitude: -23.56141,
       longitude: -46.65588,
       address: 'Alameda Santos - Cerqueira César, São Paulo - SP'
     },
-    notes: 'Teste com Etanol na cidade',
+    notes: 'Uso misto cidade/estrada',
   },
   {
     id: 'r3',
     vehicleId: 'v1',
     date: '2026-09-22',
-    odometer: 34320,
-    liters: 37.0,
-    pricePerLiter: 5.85,
-    totalCost: 216.45,
-    fuelType: 'Gasolina Aditivada',
-    isFullTank: true,
+    odometer: 145920,
+    liters: 25.0,
+    pricePerLiter: 3.89,
+    totalCost: 97.25,
+    fuelType: 'Etanol',
+    isFullTank: false,
+    tankLevelPointsBefore: 3,
+    tankLevelPointsAfter: 10,
     gasStation: 'Posto BR Petrobras',
-    notes: 'Viagem de fim de semana',
+    notes: 'Abastecimento parcial com Etanol',
   },
   {
     id: 'r4',
     vehicleId: 'v1',
     date: '2026-10-01',
-    odometer: 34850,
-    liters: 39.1,
+    odometer: 146420,
+    liters: 42.0,
     pricePerLiter: 5.75,
-    totalCost: 224.82,
+    totalCost: 241.50,
     fuelType: 'Gasolina Comum',
     isFullTank: true,
+    tankLevelPointsBefore: 2,
+    tankLevelPointsAfter: 14,
     gasStation: 'Posto Shell Central',
     location: {
       latitude: -23.55052,
       longitude: -46.633308,
       address: 'Av. Paulista - Bela Vista, São Paulo - SP'
     },
-    notes: 'Abastecimento recente',
+    notes: 'Tanque completado',
   }
 ];
 
@@ -164,7 +174,12 @@ export function loadVehicles(): Vehicle[] {
     return DEFAULT_VEHICLES;
   }
   try {
-    return JSON.parse(data);
+    const list: Vehicle[] = JSON.parse(data);
+    return list.map((v) => ({
+      ...v,
+      tankCapacityLiters: v.tankCapacityLiters || 53,
+      fuelGaugePoints: v.fuelGaugePoints || 14,
+    }));
   } catch {
     return DEFAULT_VEHICLES;
   }
